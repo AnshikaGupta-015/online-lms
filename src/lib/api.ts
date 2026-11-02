@@ -479,7 +479,7 @@ export const api = {
   getMyAssignments: () =>
     fetchApi<Assignment[]>('/api/student/assignments'),
 
-  submitAssignment: (id: string, payload: { content?: string; linkUrl?: string; submissionType?: string }) =>
+  submitAssignment: (id: string, payload: { content?: string; linkUrl?: string; repoUrl?: string; submissionType?: string }) =>
     fetchApi<{ success: boolean; submission: AssignmentSubmission }>(`/api/assignments/${id}/submit`, {
       method: 'POST',
       body: JSON.stringify(payload)

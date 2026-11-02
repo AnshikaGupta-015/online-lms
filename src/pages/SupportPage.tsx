@@ -12,7 +12,7 @@ const SUBJECT_MAX = 120;
 const DESCRIPTION_MAX = 4000;
 
 const inputClass =
-  'w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500';
+  'w-full px-3 py-2 text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0056D2]';
 
 const NewTicketForm: React.FC = () => {
   const navigate = useNavigate();
@@ -59,7 +59,7 @@ const NewTicketForm: React.FC = () => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 shadow-xs p-6 space-y-4"
+      className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 space-y-4"
     >
       <div>
         <h2 className="text-base font-bold text-slate-900 dark:text-white">Report a problem or file a complaint</h2>
@@ -114,7 +114,7 @@ const NewTicketForm: React.FC = () => {
       </label>
 
       {pageUrl && (
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-[11px] text-slate-600 dark:text-slate-300">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px] text-slate-600 dark:text-slate-300">
           <MapPin className="w-3.5 h-3.5" />
           <span>Reported from <code className="font-mono">{pageUrl}</code></span>
           <button type="button" onClick={() => setPageUrl('')} aria-label="Remove page info" className="text-slate-400 hover:text-slate-700 dark:hover:text-white">
@@ -124,13 +124,13 @@ const NewTicketForm: React.FC = () => {
       )}
 
       {error && (
-        <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs">{error}</div>
+        <div className="p-3 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs">{error}</div>
       )}
 
       <button
         type="submit"
         disabled={createMutation.isPending}
-        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-xs font-semibold shadow-xs"
+        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-[#0056D2] hover:bg-[#00419e] disabled:opacity-60 text-white text-xs font-semibold transition-colors"
       >
         {createMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
         Submit ticket
@@ -150,8 +150,8 @@ export const SupportPage: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       <div className="flex items-center gap-3">
-        <div className="w-11 h-11 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-          <LifeBuoy className="w-6 h-6" />
+        <div className="w-10 h-10 rounded-md bg-blue-50 dark:bg-blue-950/40 text-[#0056D2] dark:text-blue-400 flex items-center justify-center">
+          <LifeBuoy className="w-5 h-5" />
         </div>
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white">Help & Support</h1>
@@ -160,9 +160,9 @@ export const SupportPage: React.FC = () => {
       </div>
 
       {/* Direct Contact Channels Card */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 p-5 shadow-xs">
+      <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-5">
         <div className="flex items-center gap-2 mb-3">
-          <Headphones className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+          <Headphones className="w-4 h-4 text-[#0056D2] dark:text-blue-400" />
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
             Customer Support Channels
           </h2>
@@ -171,14 +171,14 @@ export const SupportPage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <a
             href={`tel:${SUPPORT_CONTACT.phoneTel}`}
-            className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-slate-100 dark:border-slate-800 transition-colors group"
+            className="flex items-start gap-3 p-3.5 rounded-md bg-slate-50 dark:bg-slate-800/50 hover:bg-blue-50/50 dark:hover:bg-blue-950/40 border border-slate-200 dark:border-slate-800 transition-colors group"
           >
-            <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-md bg-blue-100 dark:bg-blue-950/80 text-[#0056D2] dark:text-blue-400 flex items-center justify-center shrink-0">
               <Phone className="w-4 h-4" />
             </div>
             <div>
               <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Phone Support</p>
-              <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#0056D2] dark:group-hover:text-blue-400 transition-colors">
                 {SUPPORT_CONTACT.phone}
               </p>
               <p className="text-[10px] text-slate-400 mt-0.5">Click to call directly</p>
@@ -187,22 +187,22 @@ export const SupportPage: React.FC = () => {
 
           <a
             href={`mailto:${SUPPORT_CONTACT.email}`}
-            className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-slate-100 dark:border-slate-800 transition-colors group"
+            className="flex items-start gap-3 p-3.5 rounded-md bg-slate-50 dark:bg-slate-800/50 hover:bg-blue-50/50 dark:hover:bg-blue-950/40 border border-slate-200 dark:border-slate-800 transition-colors group"
           >
-            <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-md bg-blue-100 dark:bg-blue-950/80 text-[#0056D2] dark:text-blue-400 flex items-center justify-center shrink-0">
               <Mail className="w-4 h-4" />
             </div>
             <div>
               <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Direct Email</p>
-              <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#0056D2] dark:group-hover:text-blue-400 transition-colors">
                 {SUPPORT_CONTACT.email}
               </p>
               <p className="text-[10px] text-slate-400 mt-0.5">Average reply &lt; 2 hours</p>
             </div>
           </a>
 
-          <div className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-            <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+          <div className="flex items-start gap-3 p-3.5 rounded-md bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800">
+            <div className="w-8 h-8 rounded-md bg-blue-100 dark:bg-blue-950/80 text-[#0056D2] dark:text-blue-400 flex items-center justify-center shrink-0">
               <Clock className="w-4 h-4" />
             </div>
             <div>
@@ -223,18 +223,18 @@ export const SupportPage: React.FC = () => {
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">My tickets</h3>
             <Link
               to="/support"
-              className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#0056D2] dark:text-blue-400 hover:underline"
             >
               <Plus className="w-3.5 h-3.5" /> New ticket
             </Link>
           </div>
 
           {isLoading ? (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 flex justify-center">
-              <Loader2 className="w-5 h-5 animate-spin text-indigo-600" />
+            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-8 flex justify-center">
+              <Loader2 className="w-5 h-5 animate-spin text-[#0056D2]" />
             </div>
           ) : !tickets || tickets.length === 0 ? (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-6 text-center space-y-2">
+            <div className="bg-white dark:bg-slate-900 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 p-6 text-center space-y-2">
               <MessageSquare className="w-6 h-6 text-slate-300 mx-auto" />
               <p className="text-xs text-slate-500">No tickets yet. Anything you report will show up here.</p>
             </div>
@@ -244,10 +244,10 @@ export const SupportPage: React.FC = () => {
                 <li key={t.id}>
                   <Link
                     to={`/support/${t.id}`}
-                    className={`block p-3.5 rounded-xl border transition-colors ${
+                    className={`block p-3.5 rounded-md border transition-colors ${
                       t.id === ticketId
-                        ? 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-800'
-                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-800'
+                        ? 'bg-blue-50/50 dark:bg-blue-950/30 border-blue-400 dark:border-blue-700'
+                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2 mb-1">

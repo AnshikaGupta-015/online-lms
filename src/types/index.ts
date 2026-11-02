@@ -314,6 +314,7 @@ export interface StudyNote {
   title: string;
   content: string; // Markdown
   order: number;
+  estimatedReadMinutes?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -331,7 +332,10 @@ export interface Assignment {
   instructions: string; // Markdown
   dueDate: string; // ISO date
   maxMarks: number;
+  maxScore?: number;
   type: AssignmentType;
+  submissionType?: string;
+  rubric?: string[];
   createdAt: string;
   updatedAt: string;
   submissionCount?: number;
@@ -348,10 +352,12 @@ export interface AssignmentSubmission {
   submissionType: AssignmentType;
   content?: string;
   linkUrl?: string;
+  repoUrl?: string;
   status: SubmissionStatus;
   submittedAt: string;
   gradedAt?: string | null;
   marks?: number | null;
+  score?: number | null;
   feedback?: string | null;
   gradedBy?: string | null;
 }

@@ -514,7 +514,7 @@ export const ProgressReportPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      {item.bestQuizScore !== null ? (
+                      {item.bestQuizScore !== null && item.bestQuizScore !== undefined ? (
                         <span
                           className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
                             item.bestQuizScore >= 75

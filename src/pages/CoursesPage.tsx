@@ -255,17 +255,17 @@ export const CoursesPage: React.FC = () => {
           
           {/* DESKTOP FILTERS SIDEBAR */}
           <aside className="hidden lg:block space-y-6">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 p-5 shadow-xs space-y-6">
+            <div className="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-5 space-y-6">
               
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
-                  <Filter className="w-3.5 h-3.5 text-indigo-500" />
+                  <Filter className="w-3.5 h-3.5 text-[#0056D2] dark:text-blue-400" />
                   Filter Courses
                 </span>
                 {hasActiveFilters && (
                   <button
                     onClick={clearAllFilters}
-                    className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+                    className="text-[11px] text-[#0056D2] dark:text-blue-400 hover:underline font-medium"
                   >
                     Reset
                   </button>
@@ -277,12 +277,12 @@ export const CoursesPage: React.FC = () => {
                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">
                   Category
                 </label>
-                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
                   <button
                     onClick={() => updateParam('category', 'all')}
-                    className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    className={`w-full text-left px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${
                       selectedCategory === 'all'
-                        ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 font-semibold'
+                        ? 'bg-blue-50 dark:bg-slate-800 text-[#0056D2] dark:text-blue-400 font-semibold'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
@@ -292,9 +292,9 @@ export const CoursesPage: React.FC = () => {
                     <button
                       key={cat.id}
                       onClick={() => updateParam('category', cat.id)}
-                      className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center justify-between ${
+                      className={`w-full text-left px-2.5 py-1.5 rounded text-xs font-medium transition-colors flex items-center justify-between ${
                         selectedCategory === cat.id
-                          ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 font-semibold'
+                          ? 'bg-blue-50 dark:bg-slate-800 text-[#0056D2] dark:text-blue-400 font-semibold'
                           : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                       }`}
                     >
@@ -315,9 +315,9 @@ export const CoursesPage: React.FC = () => {
                     <button
                       key={lvl}
                       onClick={() => updateParam('level', lvl)}
-                      className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs capitalize transition-colors ${
+                      className={`w-full text-left px-2.5 py-1.5 rounded text-xs capitalize transition-colors ${
                         selectedLevel === lvl
-                          ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 font-semibold'
+                          ? 'bg-blue-50 dark:bg-slate-800 text-[#0056D2] dark:text-blue-400 font-semibold'
                           : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                       }`}
                     >
@@ -341,9 +341,9 @@ export const CoursesPage: React.FC = () => {
                     <button
                       key={p.key}
                       onClick={() => updateParam('price', p.key)}
-                      className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition-colors ${
+                      className={`w-full text-left px-2.5 py-1.5 rounded text-xs transition-colors ${
                         selectedPrice === p.key
-                          ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 font-semibold'
+                          ? 'bg-blue-50 dark:bg-slate-800 text-[#0056D2] dark:text-blue-400 font-semibold'
                           : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                       }`}
                     >
@@ -368,9 +368,9 @@ export const CoursesPage: React.FC = () => {
                     <button
                       key={r.key}
                       onClick={() => updateParam('rating', r.key)}
-                      className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition-colors ${
+                      className={`w-full text-left px-2.5 py-1.5 rounded text-xs transition-colors ${
                         selectedRating === r.key
-                          ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 font-semibold'
+                          ? 'bg-blue-50 dark:bg-slate-800 text-[#0056D2] dark:text-blue-400 font-semibold'
                           : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                       }`}
                     >

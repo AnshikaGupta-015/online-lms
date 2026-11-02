@@ -253,30 +253,30 @@ export const AdminDashboardPage: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
             <button
               onClick={() => setActiveTab('moderation')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                 activeTab === 'moderation'
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-[#0056D2] text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               Course Moderation ({adminCourses?.length || 0})
             </button>
             <button
               onClick={() => setActiveTab('users')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                 activeTab === 'users'
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-[#0056D2] text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               User Management ({adminUsers?.length || 0})
             </button>
             <button
               onClick={() => setActiveTab('certificates')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center gap-1.5 ${
                 activeTab === 'certificates'
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-[#0056D2] text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               <Award className="w-3.5 h-3.5" />
@@ -284,10 +284,10 @@ export const AdminDashboardPage: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('payments')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center gap-1.5 ${
                 activeTab === 'payments'
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-[#0056D2] text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               <CreditCard className="w-3.5 h-3.5" />
@@ -295,10 +295,10 @@ export const AdminDashboardPage: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('support')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center gap-1.5 ${
                 activeTab === 'support'
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-[#0056D2] text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               <LifeBuoy className="w-3.5 h-3.5" />
@@ -306,20 +306,20 @@ export const AdminDashboardPage: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('analytics')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                 activeTab === 'analytics'
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-[#0056D2] text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               Trends & Distribution
             </button>
             <button
               onClick={() => setActiveTab('categories')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                 activeTab === 'categories'
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-[#0056D2] text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               Categories ({categories?.length || 0})
@@ -328,7 +328,7 @@ export const AdminDashboardPage: React.FC = () => {
 
           {/* TAB 1: COURSE MODERATION */}
           {activeTab === 'moderation' && (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 overflow-hidden shadow-xs">
+            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-100 dark:border-slate-800 uppercase tracking-wider text-[10px]">

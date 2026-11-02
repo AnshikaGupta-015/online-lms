@@ -306,22 +306,22 @@ export const NotesAssignmentsPage: React.FC = () => {
                         {/* Status Badge */}
                         <div>
                           {isGraded ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-900/60">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                               <Award className="w-3.5 h-3.5" />
                               <span>Graded: {sub.marks} / {asg.maxMarks}</span>
                             </span>
                           ) : isSubmitted ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/60 text-[#0056D2] dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/60">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-blue-50 dark:bg-blue-950/60 text-[#0056D2] dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                               <CheckCircle2 className="w-3.5 h-3.5" />
                               <span>Submitted &bull; Awaiting Review</span>
                             </span>
                           ) : isPastDue ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/60 dark:border-rose-900/60">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
                               <Clock className="w-3.5 h-3.5" />
                               <span>Past Due</span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-900/60">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                               <Clock className="w-3.5 h-3.5" />
                               <span>Due Soon</span>
                             </span>
@@ -370,7 +370,7 @@ export const NotesAssignmentsPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleOpenSubmit(asg)}
-                              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0056D2] hover:bg-[#00419e] text-white text-xs font-semibold shadow-sm transition-colors"
+                              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-[#0056D2] hover:bg-[#00419e] text-white text-xs font-semibold shadow-xs transition-colors"
                             >
                               {isSubmitted ? (
                                 <>
@@ -403,11 +403,11 @@ export const NotesAssignmentsPage: React.FC = () => {
       {/* Submission Modal */}
       {submittingAssignment && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70"
           role="dialog"
           aria-modal="true"
         >
-          <div className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
+          <div className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-lg shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850">
               <div>
                 <h3 className="font-bold text-slate-900 dark:text-white text-base">

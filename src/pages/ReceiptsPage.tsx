@@ -172,11 +172,11 @@ export const ReceiptsPage: React.FC = () => {
       {/* Printable Tax Invoice Modal */}
       {selectedOrder && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70"
           role="dialog"
           aria-modal="true"
         >
-          <div className="relative w-full max-w-2xl bg-white text-slate-900 rounded-xl shadow-2xl border border-slate-200 overflow-hidden max-h-[95vh] flex flex-col">
+          <div className="relative w-full max-w-2xl bg-white text-slate-900 rounded-lg shadow-xl border border-slate-200 overflow-hidden max-h-[95vh] flex flex-col">
             {/* Modal Controls (No Print) */}
             <div className="no-print flex items-center justify-between px-6 py-3 bg-slate-100 border-b border-slate-200">
               <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">

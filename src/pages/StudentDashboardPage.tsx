@@ -84,7 +84,7 @@ export const StudentDashboardPage: React.FC = () => {
 
           <Link
             to="/courses"
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-colors shrink-0"
+            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-[#0056D2] hover:bg-[#00419e] rounded transition-colors shrink-0"
           >
             <span>Explore More Courses</span>
             <ArrowRight className="w-4 h-4" />
@@ -97,7 +97,7 @@ export const StudentDashboardPage: React.FC = () => {
             label="Enrolled Courses"
             value={stats.enrolledCount}
             subtitle="Active curriculum registrations"
-            icon={<BookOpen className="w-5 h-5" />}
+            icon={<BookOpen className="w-5 h-5 text-[#0056D2]" />}
           />
           <StatCard
             label="Completed Milestones"
@@ -109,7 +109,7 @@ export const StudentDashboardPage: React.FC = () => {
             label="Estimated Hours Learned"
             value={stats.hoursLearned}
             subtitle="Engaged curriculum study time"
-            icon={<Clock className="w-5 h-5 text-violet-500" />}
+            icon={<Clock className="w-5 h-5 text-slate-500" />}
           />
         </div>
 
@@ -117,17 +117,17 @@ export const StudentDashboardPage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Link
             to="/progress"
-            className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 shadow-2xs hover:border-indigo-400 dark:hover:border-indigo-600 transition-all group"
+            className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-[#0056D2] dark:hover:border-blue-500 transition-colors group"
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-md bg-blue-50 dark:bg-blue-950/60 text-[#0056D2] dark:text-blue-400 flex items-center justify-center">
                 <BarChart3 className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#0056D2] dark:group-hover:text-blue-400 transition-colors">
                   Progress Analytics
                 </p>
-                <p className="text-[11px] text-slate-400">Charts, transcript & printable report</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Charts, transcript & printable report</p>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
@@ -135,17 +135,17 @@ export const StudentDashboardPage: React.FC = () => {
 
           <Link
             to="/notes-assignments"
-            className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 shadow-2xs hover:border-emerald-400 dark:hover:border-emerald-600 transition-all group"
+            className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-[#0056D2] dark:hover:border-blue-500 transition-colors group"
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                 <FileText className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#0056D2] dark:group-hover:text-blue-400 transition-colors">
                   Notes & Tasks
                 </p>
-                <p className="text-[11px] text-slate-400">Lecture notes & homework submissions</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Lecture notes & homework submissions</p>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
@@ -153,17 +153,17 @@ export const StudentDashboardPage: React.FC = () => {
 
           <Link
             to="/receipts"
-            className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 shadow-2xs hover:border-amber-400 dark:hover:border-amber-600 transition-all group"
+            className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-[#0056D2] dark:hover:border-blue-500 transition-colors group"
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
                 <Sparkles className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#0056D2] dark:group-hover:text-blue-400 transition-colors">
                   Payment History
                 </p>
-                <p className="text-[11px] text-slate-400">View tax invoices & GST receipts</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">View tax invoices & GST receipts</p>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
@@ -173,54 +173,53 @@ export const StudentDashboardPage: React.FC = () => {
         {/* GITHUB-STYLE LEARNING STREAK HEATMAP */}
         {activityData && (
           <LearningStreakHeatmap
-            streak={activityData.streak}
-            days={activityData.days}
-            title="Daily Learning Streak"
+            data={activityData}
           />
         )}
 
         {/* UPCOMING ASSIGNMENTS & DUE DATES */}
         {assignmentsData && assignmentsData.length > 0 && (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 p-6 shadow-xs">
+          <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <Calendar className="w-4 h-4 text-[#0056D2] dark:text-blue-400" />
                 <h2 className="text-sm font-bold text-slate-900 dark:text-white">
                   Upcoming Course Assignments & Deadlines
                 </h2>
               </div>
               <Link
                 to="/notes-assignments"
-                className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                className="text-xs font-semibold text-[#0056D2] dark:text-blue-400 hover:underline"
               >
                 View all ({assignmentsData.length}) →
               </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {assignmentsData.slice(0, 3).map(({ assignment, submission }) => {
+              {assignmentsData.slice(0, 3).map((assignment) => {
+                const submission = assignment.userSubmission;
                 const isSubmitted = !!submission;
                 const isGraded = submission?.status === 'graded';
                 return (
                   <div
                     key={assignment.id}
-                    className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex flex-col justify-between"
+                    className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                          {assignment.submissionType === 'link' ? 'Repo / PR Link' : 'Written Report'}
+                          {assignment.type === 'link' ? 'Repo / PR Link' : 'Written Report'}
                         </span>
                         {isGraded ? (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400">
-                            {submission.score}/{assignment.maxScore} marks
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400">
+                            {submission.marks}/{assignment.maxMarks} marks
                           </span>
                         ) : isSubmitted ? (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-400">
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-400">
                             Submitted
                           </span>
                         ) : (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-400">
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-400">
                             Due {assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'Soon'}
                           </span>
                         )}
@@ -234,13 +233,13 @@ export const StudentDashboardPage: React.FC = () => {
                       </p>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between">
+                    <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
                       <span className="text-[11px] text-slate-400">
-                        Max: {assignment.maxScore} pts
+                        Max: {assignment.maxMarks} pts
                       </span>
                       <Link
                         to="/notes-assignments"
-                        className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                        className="text-xs font-semibold text-[#0056D2] dark:text-blue-400 hover:underline"
                       >
                         {isSubmitted ? 'View Evaluation →' : 'Submit Task →'}
                       </Link>
@@ -254,9 +253,9 @@ export const StudentDashboardPage: React.FC = () => {
 
         {/* CONTINUE LEARNING HERO CARD */}
         {currentHeroCourse && (
-          <div className="bg-gradient-to-r from-indigo-900 via-indigo-950 to-slate-950 rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6 sm:p-8 text-white relative overflow-hidden">
             <div className="relative z-10 max-w-2xl space-y-4">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-300">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-blue-300">
                 Resume Active Curriculum
               </span>
               <h2 className="text-xl sm:text-2xl font-bold">
@@ -267,13 +266,13 @@ export const StudentDashboardPage: React.FC = () => {
               </p>
 
               <div className="pt-2 max-w-md">
-                <div className="flex justify-between text-xs text-indigo-200 mb-1 font-semibold">
+                <div className="flex justify-between text-xs text-blue-200 mb-1 font-semibold">
                   <span>Overall Progress</span>
                   <span className="font-mono tabular-nums">{currentHeroCourse.progressPercent}%</span>
                 </div>
-                <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
                   <div
-                    className="bg-indigo-400 h-full rounded-full transition-all duration-300"
+                    className="bg-[#0056D2] h-full rounded transition-all duration-300"
                     style={{ width: `${currentHeroCourse.progressPercent}%` }}
                   />
                 </div>
@@ -282,9 +281,9 @@ export const StudentDashboardPage: React.FC = () => {
               <div className="pt-3">
                 <Link
                   to={`/learn/${currentHeroCourse.course.slug}`}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-slate-950 text-xs font-bold rounded-xl hover:bg-slate-100 transition-transform hover:-translate-y-0.5 shadow-md"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0056D2] hover:bg-[#00419e] text-white text-xs font-semibold rounded-md transition-colors"
                 >
-                  <PlayCircle className="w-4 h-4 text-indigo-600" />
+                  <PlayCircle className="w-4 h-4 text-white" />
                   <span>Resume Next Lesson</span>
                 </Link>
               </div>
@@ -307,30 +306,30 @@ export const StudentDashboardPage: React.FC = () => {
           <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
             <button
               onClick={() => setActiveTab('in_progress')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                 activeTab === 'in_progress'
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-[#0056D2] text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               In Progress ({inProgressCourses.length})
             </button>
             <button
               onClick={() => setActiveTab('completed')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                 activeTab === 'completed'
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-[#0056D2] text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               Completed ({completedCourses.length})
             </button>
             <button
               onClick={() => setActiveTab('certificates')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                 activeTab === 'certificates'
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-[#0056D2] text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               Earned Certificates
@@ -353,10 +352,10 @@ export const StudentDashboardPage: React.FC = () => {
                   {inProgressCourses.map((item) => (
                     <div
                       key={item.enrollment.id}
-                      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 p-5 shadow-xs flex flex-col justify-between"
+                      className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-5 flex flex-col justify-between"
                     >
                       <div className="space-y-3">
-                        <div className="aspect-video w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800">
+                        <div className="aspect-video w-full rounded-md overflow-hidden bg-slate-100 dark:bg-slate-800">
                           <img
                             src={item.course.thumbnailUrl}
                             alt={item.course.title}
@@ -373,13 +372,13 @@ export const StudentDashboardPage: React.FC = () => {
                         <ProgressBar progress={item.progressPercent} size="sm" />
                       </div>
 
-                      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                      <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
                         <span className="text-[11px] text-slate-400 tabular-nums">
                           {item.completedLessons} of {item.totalLessons} lessons done
                         </span>
                         <Link
                           to={`/learn/${item.course.slug}`}
-                          className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                          className="px-3.5 py-1.5 bg-[#0056D2] hover:bg-[#00419e] text-white text-xs font-semibold rounded-md transition-colors"
                         >
                           Continue →
                         </Link>
@@ -405,10 +404,10 @@ export const StudentDashboardPage: React.FC = () => {
                   {completedCourses.map((item) => (
                     <div
                       key={item.enrollment.id}
-                      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 p-5 shadow-xs flex flex-col justify-between"
+                      className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-5 flex flex-col justify-between"
                     >
                       <div className="space-y-3">
-                        <div className="aspect-video w-full rounded-xl overflow-hidden relative bg-slate-100 dark:bg-slate-800">
+                        <div className="aspect-video w-full rounded-md overflow-hidden relative bg-slate-100 dark:bg-slate-800">
                           <img
                             src={item.course.thumbnailUrl}
                             alt={item.course.title}
@@ -416,12 +415,12 @@ export const StudentDashboardPage: React.FC = () => {
                             referrerPolicy="no-referrer"
                           />
                           <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
-                            <span className="px-2 py-1 bg-emerald-600 text-white text-[10px] font-bold rounded-md flex items-center gap-1 shadow-sm">
+                            <span className="px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-bold rounded flex items-center gap-1 shadow-sm">
                               <CheckCircle2 className="w-3 h-3" />
                               Completed
                             </span>
                             {item.enrollment.certificateId && (
-                              <span className="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-bold rounded-md flex items-center gap-1 shadow-sm">
+                              <span className="px-2 py-0.5 bg-amber-600 text-white text-[10px] font-bold rounded flex items-center gap-1 shadow-sm">
                                 <Award className="w-3 h-3" />
                                 Certificate earned
                               </span>
@@ -437,7 +436,7 @@ export const StudentDashboardPage: React.FC = () => {
                         </p>
                       </div>
 
-                      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                      <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
                         <Link
                           to={`/learn/${item.course.slug}`}
                           className="text-xs font-semibold text-slate-600 dark:text-slate-300 hover:underline"
@@ -447,7 +446,7 @@ export const StudentDashboardPage: React.FC = () => {
                         {item.enrollment.certificateId && (
                           <Link
                             to={`/certificate/${item.enrollment.certificateId}`}
-                            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors shadow-xs"
+                            className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-md flex items-center gap-1.5 transition-colors"
                           >
                             <Award className="w-3.5 h-3.5" />
                             <span>View Certificate</span>
@@ -477,7 +476,7 @@ export const StudentDashboardPage: React.FC = () => {
                     .map((item) => (
                       <div
                         key={item.enrollment.certificateId}
-                        className="bg-white dark:bg-slate-900 rounded-2xl border border-amber-300 dark:border-amber-700/60 p-6 shadow-md flex items-center justify-between gap-4"
+                        className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 flex items-center justify-between gap-4"
                       >
                         <div className="space-y-1">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1">
@@ -493,7 +492,7 @@ export const StudentDashboardPage: React.FC = () => {
                         </div>
                         <Link
                           to={`/certificate/${item.enrollment.certificateId}`}
-                          className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-bold rounded-xl shrink-0 flex items-center gap-1.5 shadow-sm"
+                          className="px-4 py-2 bg-[#0056D2] hover:bg-[#00419e] text-white text-xs font-semibold rounded-md shrink-0 flex items-center gap-1.5 transition-colors"
                         >
                           <span>Print Certificate</span>
                           <ExternalLink className="w-3.5 h-3.5" />

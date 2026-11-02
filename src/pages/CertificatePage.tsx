@@ -84,13 +84,13 @@ export const CertificatePage: React.FC = () => {
           <div className="mt-6 flex items-center justify-center gap-3">
             <Link
               to="/verify"
-              className="px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-lg"
+              className="px-4 py-2 bg-[#0056D2] hover:bg-[#00419e] text-white text-xs font-semibold rounded-md transition-colors"
             >
               Verify Another Code
             </Link>
             <Link
               to="/courses"
-              className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg"
+              className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-md hover:bg-slate-200 transition-colors"
             >
               Browse Courses
             </Link>
@@ -125,7 +125,7 @@ export const CertificatePage: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2.5">
             <button
               onClick={handleCopy}
-              className="px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-md shadow-xs transition-colors flex items-center gap-1.5"
               title="Copy public verification link"
             >
               <Share2 className="w-3.5 h-3.5" />
@@ -134,7 +134,7 @@ export const CertificatePage: React.FC = () => {
 
             <button
               onClick={handleShareLinkedIn}
-              className="px-3.5 py-2 text-xs font-semibold text-white bg-[#0077b5] hover:bg-[#006396] rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-2 text-xs font-semibold text-white bg-[#0077b5] hover:bg-[#006396] rounded-md shadow-xs transition-colors flex items-center gap-1.5"
               title="Add this accredited certificate to your LinkedIn profile"
             >
               <Linkedin className="w-3.5 h-3.5" />
@@ -145,7 +145,7 @@ export const CertificatePage: React.FC = () => {
             {isOwner && (
               <button
                 onClick={handlePrint}
-                className="px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 rounded-xl shadow-sm transition-all flex items-center gap-1.5"
+                className="px-4 py-2 text-xs font-semibold text-white bg-[#0056D2] hover:bg-[#00419e] rounded-md shadow-xs transition-colors flex items-center gap-1.5"
                 title="Print or Save as PDF"
               >
                 <Printer className="w-4 h-4" />
@@ -157,7 +157,7 @@ export const CertificatePage: React.FC = () => {
 
         {/* REVOCATION WARNING BANNER (If certificate was revoked) */}
         {data.revoked && (
-          <div className="no-print mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-900/60 flex items-start gap-3">
+          <div className="no-print mb-6 p-4 rounded-lg bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-900/60 flex items-start gap-3">
             <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
             <div>
               <h4 className="text-xs font-bold text-rose-900 dark:text-rose-200">
@@ -173,14 +173,14 @@ export const CertificatePage: React.FC = () => {
         )}
 
         {/* ELEGANT CERTIFICATE SHEET (A4 LANDSCAPE RATIO) */}
-        <div className="certificate-sheet bg-white text-slate-900 rounded-3xl border-8 border-double border-slate-300 p-8 sm:p-14 shadow-2xl relative overflow-hidden text-center space-y-6 aspect-[1.414/1] flex flex-col justify-between">
+        <div className="certificate-sheet bg-white text-slate-900 rounded-xl border-4 border-slate-300 p-8 sm:p-14 shadow-lg relative overflow-hidden text-center space-y-6 aspect-[1.414/1] flex flex-col justify-between">
           
           {/* Subtle Guilloche / Watermark Pattern */}
-          <div className="absolute inset-0 border-2 border-dashed border-amber-600/20 m-3 pointer-events-none rounded-2xl" />
+          <div className="absolute inset-0 border-2 border-dashed border-slate-300 m-3 pointer-events-none rounded-lg" />
 
           {data.revoked && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <span className="text-7xl sm:text-8xl font-black text-rose-500/20 -rotate-12 uppercase tracking-widest border-4 border-rose-500/30 px-8 py-2 rounded-2xl select-none">
+              <span className="text-7xl sm:text-8xl font-black text-rose-500/20 -rotate-12 uppercase tracking-widest border-4 border-rose-500/30 px-8 py-2 rounded-lg select-none">
                 REVOKED
               </span>
             </div>
@@ -188,7 +188,7 @@ export const CertificatePage: React.FC = () => {
 
           {/* Top Header */}
           <div className="space-y-2 pt-2">
-            <div className="flex items-center justify-center gap-2 text-indigo-700 font-bold text-sm tracking-widest uppercase">
+            <div className="flex items-center justify-center gap-2 text-[#0056D2] font-bold text-sm tracking-widest uppercase">
               <Award className="w-4 h-4 text-amber-500" />
               <span>LearnHub Institute of Technology</span>
             </div>

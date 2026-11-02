@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { ChatBot } from '../components/ChatBot';
 import { MarkdownView } from '../components/MarkdownView';
+import { Assignment, StudyNote } from '../types';
 
 export const LessonPlayerPage: React.FC = () => {
   const { courseSlug, lessonId: paramLessonId } = useParams<{ courseSlug: string; lessonId?: string }>();
@@ -46,7 +47,7 @@ export const LessonPlayerPage: React.FC = () => {
   const [showCelebration, setShowCelebration] = useState(false);
 
   // Assignment submission modal state
-  const [submittingAssignment, setSubmittingAssignment] = useState<any | null>(null);
+  const [submittingAssignment, setSubmittingAssignment] = useState<Assignment | null>(null);
   const [submissionContent, setSubmissionContent] = useState('');
   const [submissionRepoUrl, setSubmissionRepoUrl] = useState('');
   const [submitError, setSubmitError] = useState('');
@@ -59,23 +60,26 @@ export const LessonPlayerPage: React.FC = () => {
     enabled: !!courseSlug
   });
 
-  const { data: studyNotes = [] } = useQuery({
+  const { data: studyNotesData } = useQuery({
     queryKey: ['courseStudyNotes', data?.course?.id],
     queryFn: () => api.getCourseStudyNotes(data!.course.id),
     enabled: !!data?.course?.id
   });
+  const studyNotes: StudyNote[] = studyNotesData?.studyNotes || [];
 
-  const { data: courseAssignments = [] } = useQuery({
+  const { data: courseAssignmentsData } = useQuery({
     queryKey: ['courseAssignments', data?.course?.id],
     queryFn: () => api.getCourseAssignments(data!.course.id),
     enabled: !!data?.course?.id
   });
+  const courseAssignments: Assignment[] = courseAssignmentsData?.assignments || [];
 
   const submitAssignmentMutation = useMutation({
-    mutationFn: (payload: { assignmentId: string; content?: string; repoUrl?: string }) =>
+    mutationFn: (payload: { assignmentId: string; content?: string; repoUrl?: string; linkUrl?: string }) =>
       api.submitAssignment(payload.assignmentId, {
         content: payload.content,
-        repoUrl: payload.repoUrl
+        linkUrl: payload.linkUrl || payload.repoUrl,
+        repoUrl: payload.repoUrl || payload.linkUrl
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courseAssignments', data?.course?.id] });
@@ -244,17 +248,17 @@ export const LessonPlayerPage: React.FC = () => {
   if (!data.isEnrolled && !data.isInstructor && !data.isAdmin && !currentLesson?.isFreePreview) {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6">
-        <div className="text-center space-y-4 max-w-md bg-slate-900 p-8 rounded-2xl border border-slate-800">
-          <div className="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
+        <div className="text-center space-y-4 max-w-md bg-slate-900 p-8 rounded-lg border border-slate-800 shadow-sm">
+          <div className="w-12 h-12 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto border border-amber-500/20">
             <Lock className="w-6 h-6" />
           </div>
           <h2 className="text-lg font-bold">Enrollment Required</h2>
           <p className="text-xs text-slate-400">
-            This module is reserved for registered students. Please enroll to access the remaining 10+ lessons, assignments, and quizzes.
+            This module is reserved for registered students. Please enroll to access the remaining lessons, assignments, and quizzes.
           </p>
           <Link
             to={`/courses/${courseSlug}`}
-            className="inline-block px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl"
+            className="inline-block px-5 py-2.5 bg-[#0056D2] hover:bg-[#00419e] text-white font-semibold text-xs rounded transition-colors"
           >
             Enroll in Course
           </Link>
@@ -271,7 +275,7 @@ export const LessonPlayerPage: React.FC = () => {
         <div className="flex items-center gap-3 truncate">
           <Link
             to={`/courses/${courseSlug}`}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors shrink-0"
+            className="p-1.5 text-slate-400 hover:text-white rounded hover:bg-slate-800 transition-colors shrink-0"
             title="Back to Course Overview"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -302,7 +306,7 @@ export const LessonPlayerPage: React.FC = () => {
           {data.quiz && (
             <Link
               to={`/learn/${courseSlug}/quiz`}
-              className="px-3 py-1.5 bg-indigo-600/80 hover:bg-indigo-600 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 bg-[#0056D2] hover:bg-[#00419e] text-white text-xs font-semibold rounded flex items-center gap-1.5 transition-colors"
             >
               <HelpCircle className="w-3.5 h-3.5" />
               <span>Final Exam</span>
@@ -313,7 +317,7 @@ export const LessonPlayerPage: React.FC = () => {
           {data.enrollment?.certificateId && (
             <Link
               to={`/certificate/${data.enrollment.certificateId}`}
-              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded flex items-center gap-1.5 transition-colors"
             >
               <Award className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Certificate</span>
@@ -456,23 +460,23 @@ export const LessonPlayerPage: React.FC = () => {
           <div className="p-4 sm:p-6 space-y-6">
             
             {/* Tab buttons */}
-            <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-3">
+            <div className="flex flex-wrap items-center gap-1 border-b border-slate-800 pb-2">
               <button
                 onClick={() => setActiveTab('overview')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
                   activeTab === 'overview'
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#0056D2] text-white'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-850'
                 }`}
               >
                 Overview & Objectives
               </button>
               <button
                 onClick={() => setActiveTab('study-notes')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors flex items-center gap-1.5 ${
                   activeTab === 'study-notes'
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#0056D2] text-white'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-850'
                 }`}
               >
                 <FileText className="w-3.5 h-3.5" />
@@ -480,10 +484,10 @@ export const LessonPlayerPage: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveTab('assignments')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors flex items-center gap-1.5 ${
                   activeTab === 'assignments'
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#0056D2] text-white'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-850'
                 }`}
               >
                 <Award className="w-3.5 h-3.5" />
@@ -491,30 +495,30 @@ export const LessonPlayerPage: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveTab('notes')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
                   activeTab === 'notes'
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#0056D2] text-white'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-850'
                 }`}
               >
                 Personal Notebook
               </button>
               <button
                 onClick={() => setActiveTab('resources')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
                   activeTab === 'resources'
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#0056D2] text-white'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-850'
                 }`}
               >
                 Exercise Resources
               </button>
               <button
                 onClick={() => setActiveTab('ask-ai')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors ${
+                className={`px-3 py-1.5 text-xs font-semibold rounded flex items-center gap-1.5 transition-colors ${
                   activeTab === 'ask-ai'
-                    ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/40 border border-indigo-500/30'
+                    ? 'bg-[#0056D2] text-white'
+                    : 'text-blue-400 hover:text-blue-300 hover:bg-blue-950/40 border border-blue-500/30'
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
@@ -629,7 +633,8 @@ export const LessonPlayerPage: React.FC = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {courseAssignments.map(({ assignment, submission }) => {
+                    {courseAssignments.map((assignment: Assignment) => {
+                      const submission = assignment.userSubmission;
                       const isGraded = submission?.status === 'graded';
                       const isSubmitted = !!submission;
 
@@ -642,7 +647,7 @@ export const LessonPlayerPage: React.FC = () => {
                             <div>
                               <div className="flex items-center gap-2">
                                 <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-400 px-2 py-0.5 rounded bg-indigo-950/60 border border-indigo-800/40">
-                                  {assignment.submissionType === 'link' ? 'Repo Link Submission' : 'Written Submission'}
+                                  {assignment.type === 'link' || assignment.submissionType === 'link' ? 'Repo Link Submission' : 'Written Submission'}
                                 </span>
                                 {assignment.dueDate && (
                                   <span className="text-[11px] text-slate-400 flex items-center gap-1">
@@ -657,7 +662,7 @@ export const LessonPlayerPage: React.FC = () => {
                             <div className="flex items-center gap-2">
                               {isGraded ? (
                                 <span className="px-3 py-1 bg-emerald-950/60 text-emerald-400 border border-emerald-800/50 rounded-lg font-bold text-xs">
-                                  Graded: {submission.score} / {assignment.maxScore} marks
+                                  Graded: {submission?.marks ?? submission?.score ?? 0} / {assignment.maxMarks ?? assignment.maxScore ?? 100} marks
                                 </span>
                               ) : isSubmitted ? (
                                 <span className="px-3 py-1 bg-amber-950/60 text-amber-400 border border-amber-800/50 rounded-lg font-bold text-xs">
@@ -665,7 +670,7 @@ export const LessonPlayerPage: React.FC = () => {
                                 </span>
                               ) : (
                                 <span className="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg font-semibold text-xs">
-                                  Not Submitted ({assignment.maxScore} pts)
+                                  Not Submitted ({assignment.maxMarks ?? assignment.maxScore ?? 100} pts)
                                 </span>
                               )}
                             </div>
@@ -689,14 +694,14 @@ export const LessonPlayerPage: React.FC = () => {
                           {submission && (
                             <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800/80 space-y-2 text-xs">
                               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Your Submission</div>
-                              {submission.repoUrl && (
+                              {(submission.linkUrl || submission.repoUrl) && (
                                 <a
-                                  href={submission.repoUrl}
+                                  href={submission.linkUrl || submission.repoUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-indigo-400 hover:underline flex items-center gap-1 font-mono text-[11px]"
                                 >
-                                  <span>{submission.repoUrl}</span>
+                                  <span>{submission.linkUrl || submission.repoUrl}</span>
                                   <ExternalLink className="w-3 h-3" />
                                 </a>
                               )}
@@ -717,7 +722,7 @@ export const LessonPlayerPage: React.FC = () => {
                               onClick={() => {
                                 setSubmittingAssignment(assignment);
                                 setSubmissionContent(submission?.content || '');
-                                setSubmissionRepoUrl(submission?.repoUrl || '');
+                                setSubmissionRepoUrl(submission?.linkUrl || submission?.repoUrl || '');
                                 setSubmitError('');
                               }}
                               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors"
@@ -842,7 +847,7 @@ export const LessonPlayerPage: React.FC = () => {
                         onClick={() => setActiveLessonId(lesson.id)}
                         className={`w-full px-4 py-2.5 flex items-start gap-3 text-left transition-colors ${
                           isActive
-                            ? 'bg-indigo-950/80 text-white font-semibold border-l-2 border-indigo-500'
+                            ? 'bg-blue-950/60 text-white font-medium border-l-2 border-[#0056D2]'
                             : 'text-slate-300 hover:bg-slate-800/60'
                         }`}
                       >
@@ -870,12 +875,12 @@ export const LessonPlayerPage: React.FC = () => {
           {/* Certificate & Quiz Action Section in Sidebar (A.7) */}
           <div className="p-4 mt-auto border-t border-slate-800 bg-slate-950/40 space-y-3">
             {data.enrollment?.certificateId ? (
-              <div className="p-3 bg-emerald-950/40 rounded-xl border border-emerald-500/30 text-center space-y-2">
+              <div className="p-3 bg-emerald-950/40 rounded-lg border border-emerald-500/30 text-center space-y-2">
                 <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
                   <Award className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300">
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/20 text-emerald-300">
                     <Check className="w-3 h-3" /> Certificate Earned
                   </div>
                   <h4 className="text-xs font-bold text-white mt-1">Official Credential Issued</h4>
@@ -883,13 +888,13 @@ export const LessonPlayerPage: React.FC = () => {
                 </div>
                 <Link
                   to={`/certificate/${data.enrollment.certificateId}`}
-                  className="block w-full py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-colors shadow-sm"
+                  className="block w-full py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded transition-colors"
                 >
                   View Certificate
                 </Link>
               </div>
             ) : totalCount - completedCount > 0 ? (
-              <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 text-center space-y-2">
+              <div className="p-3 bg-slate-950/80 rounded-lg border border-slate-800 text-center space-y-2">
                 <div className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
                   <Lock className="w-4 h-4" />
                 </div>
@@ -902,13 +907,13 @@ export const LessonPlayerPage: React.FC = () => {
                 </div>
                 <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
                   <div
-                    className="bg-indigo-500 h-1.5 rounded-full transition-all duration-300"
+                    className="bg-[#0056D2] h-1.5 rounded-full transition-all duration-300"
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
               </div>
             ) : (
-              <div className="p-3 bg-amber-950/40 rounded-xl border border-amber-500/30 text-center space-y-2">
+              <div className="p-3 bg-amber-950/40 rounded-lg border border-amber-500/30 text-center space-y-2">
                 <div className="w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
                   <Award className="w-4 h-4" />
                 </div>
@@ -921,7 +926,7 @@ export const LessonPlayerPage: React.FC = () => {
                 {data.quiz && (
                   <Link
                     to={`/learn/${courseSlug}/quiz`}
-                    className="block w-full py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg transition-colors shadow-sm"
+                    className="block w-full py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold rounded transition-colors"
                   >
                     Take Quiz
                   </Link>
@@ -936,31 +941,31 @@ export const LessonPlayerPage: React.FC = () => {
 
       {/* ASSIGNMENT SUBMISSION MODAL */}
       {submittingAssignment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-lg w-full space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
+          <div className="bg-slate-900 border border-slate-800 p-6 rounded-lg max-w-lg w-full space-y-4 shadow-lg">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
-                <span className="text-[10px] font-mono text-indigo-400 uppercase tracking-wider">
+                <span className="text-[10px] font-mono text-blue-400 uppercase tracking-wider">
                   Assignment Submission
                 </span>
                 <h3 className="text-sm font-bold text-white">{submittingAssignment.title}</h3>
               </div>
               <button
                 onClick={() => setSubmittingAssignment(null)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-white px-2 py-1"
               >
                 ✕
               </button>
             </div>
 
             {submitSuccess && (
-              <div className="p-3 bg-emerald-950/60 border border-emerald-800 text-emerald-400 rounded-xl text-xs font-semibold text-center">
+              <div className="p-3 bg-emerald-950/60 border border-emerald-800 text-emerald-400 rounded text-xs font-semibold text-center">
                 Assignment submitted successfully! Evaluation pending.
               </div>
             )}
 
             {submitError && (
-              <div className="p-3 bg-rose-950/60 border border-rose-800 text-rose-400 rounded-xl text-xs">
+              <div className="p-3 bg-rose-950/60 border border-rose-800 text-rose-400 rounded text-xs">
                 {submitError}
               </div>
             )}
@@ -969,19 +974,21 @@ export const LessonPlayerPage: React.FC = () => {
               onSubmit={(e) => {
                 e.preventDefault();
                 setSubmitError('');
-                if (submittingAssignment.submissionType === 'link' && !submissionRepoUrl.trim()) {
+                const isLinkType = submittingAssignment.type === 'link' || submittingAssignment.submissionType === 'link';
+                if (isLinkType && !submissionRepoUrl.trim()) {
                   setSubmitError('Please provide a repository URL or link.');
                   return;
                 }
                 submitAssignmentMutation.mutate({
                   assignmentId: submittingAssignment.id,
                   content: submissionContent.trim(),
+                  linkUrl: submissionRepoUrl.trim() || undefined,
                   repoUrl: submissionRepoUrl.trim() || undefined
                 });
               }}
               className="space-y-4 text-xs"
             >
-              {submittingAssignment.submissionType === 'link' && (
+              {(submittingAssignment.type === 'link' || submittingAssignment.submissionType === 'link') && (
                 <div>
                   <label className="font-semibold text-slate-300 block mb-1">
                     Repository / Project URL *
@@ -1007,7 +1014,7 @@ export const LessonPlayerPage: React.FC = () => {
                   value={submissionContent}
                   onChange={(e) => setSubmissionContent(e.target.value)}
                   className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                  required={submittingAssignment.submissionType !== 'link'}
+                  required={!(submittingAssignment.type === 'link' || submittingAssignment.submissionType === 'link')}
                 />
               </div>
 

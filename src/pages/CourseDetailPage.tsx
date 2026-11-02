@@ -124,14 +124,14 @@ export const CourseDetailPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-pulse space-y-6">
-          <div className="h-8 w-2/3 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+          <div className="h-8 w-2/3 bg-slate-200 dark:bg-slate-800 rounded" />
           <div className="h-4 w-1/2 bg-slate-200 dark:bg-slate-800 rounded" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-8">
             <div className="lg:col-span-2 space-y-4">
-              <div className="h-48 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
-              <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+              <div className="h-48 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+              <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
             </div>
-            <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+            <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-lg" />
           </div>
         </div>
       </div>
@@ -141,14 +141,14 @@ export const CourseDetailPage: React.FC = () => {
   if (isError || !data?.course) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 text-center max-w-md">
+        <div className="bg-white dark:bg-slate-900 p-8 rounded-lg border border-slate-200 dark:border-slate-800 text-center max-w-md shadow-xs">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">Course Not Found</h2>
           <p className="mt-2 text-xs text-slate-500">
             The requested course may have been removed or is pending approval.
           </p>
           <Link
             to="/courses"
-            className="mt-6 inline-block px-4 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-lg"
+            className="mt-6 inline-block px-4 py-2 text-xs font-semibold text-white bg-[#0056D2] hover:bg-[#00419e] rounded transition-colors"
           >
             Back to Catalog
           </Link>
@@ -178,7 +178,7 @@ export const CourseDetailPage: React.FC = () => {
             <div className="lg:col-span-8 space-y-4">
               
               {/* Category & Level Strip */}
-              <div className="flex items-center gap-2 text-xs text-indigo-400">
+              <div className="flex items-center gap-2 text-xs text-blue-400">
                 <Link to={`/courses?category=${category?.id}`} className="hover:underline font-medium">
                   {category?.name || 'Computer Science'}
                 </Link>
@@ -246,19 +246,19 @@ export const CourseDetailPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* LEFT 8 COLS: SYLLABUS, WHAT YOU'LL LEARN, REVIEWS */}
-          <div className="lg:col-span-8 space-y-10">
+          <div className="lg:col-span-8 space-y-8">
             
             {/* WHAT YOU WILL LEARN */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 p-6 shadow-xs">
+            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6">
               <h2 className="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-indigo-500" />
-                What You'll Learn in this Masterclass
+                <Sparkles className="w-4 h-4 text-[#0056D2]" />
+                What You'll Learn
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-700 dark:text-slate-300">
                 {course.whatYouWillLearn?.map((item, index) => (
                   <div key={index} className="flex items-start gap-2.5">
-                    <div className="mt-0.5 w-4 h-4 rounded-full bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
-                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    <div className="mt-0.5 w-4 h-4 rounded bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center text-[#0056D2] dark:text-blue-400 shrink-0">
+                      <Check className="w-3 h-3 stroke-[2.5]" />
                     </div>
                     <span className="leading-relaxed">{item}</span>
                   </div>
@@ -287,7 +287,7 @@ export const CourseDetailPage: React.FC = () => {
                     });
                     setExpandedSections(next);
                   }}
-                  className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                  className="text-xs font-semibold text-[#0056D2] dark:text-blue-400 hover:underline"
                 >
                   {Object.values(expandedSections).every(Boolean) ? 'Collapse all' : 'Expand all'}
                 </button>
@@ -299,24 +299,24 @@ export const CourseDetailPage: React.FC = () => {
                   return (
                     <div
                       key={section.id}
-                      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 overflow-hidden shadow-2xs"
+                      className="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden"
                     >
                       {/* Section Header */}
                       <button
                         onClick={() => toggleSection(section.id)}
-                        className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                        className="w-full px-5 py-3.5 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                       >
                         <div className="flex items-center gap-3">
                           {isOpen ? (
-                            <ChevronUp className="w-4 h-4 text-slate-400" />
+                            <ChevronUp className="w-4 h-4 text-slate-500" />
                           ) : (
-                            <ChevronDown className="w-4 h-4 text-slate-400" />
+                            <ChevronDown className="w-4 h-4 text-slate-500" />
                           )}
                           <div>
                             <h3 className="text-xs font-bold text-slate-900 dark:text-white">
                               {section.title}
                             </h3>
-                            <span className="text-[11px] text-slate-400 tabular-nums">
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
                               {section.lessons?.length || 0} lessons
                             </span>
                           </div>
@@ -325,7 +325,7 @@ export const CourseDetailPage: React.FC = () => {
 
                       {/* Section Lessons List */}
                       {isOpen && (
-                        <div className="border-t border-slate-100 dark:border-slate-800/80 divide-y divide-slate-100 dark:divide-slate-800/80">
+                        <div className="border-t border-slate-100 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800">
                           {section.lessons?.map((lesson: any) => (
                             <div
                               key={lesson.id}
@@ -342,12 +342,12 @@ export const CourseDetailPage: React.FC = () => {
                                 {lesson.isFreePreview && (
                                   <button
                                     onClick={() => setPreviewVideoUrl('https://www.youtube.com/watch?v=SqcY0GlETPk')}
-                                    className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                                    className="text-[11px] font-semibold text-[#0056D2] dark:text-blue-400 hover:underline"
                                   >
                                     Free Preview
                                   </button>
                                 )}
-                                <span className="text-slate-400 font-mono tabular-nums text-[11px]">
+                                <span className="text-slate-500 dark:text-slate-400 font-mono tabular-nums text-[11px]">
                                   {lesson.durationMinutes} min
                                 </span>
                               </div>
@@ -362,7 +362,7 @@ export const CourseDetailPage: React.FC = () => {
             </div>
 
             {/* REQUIREMENTS & DESCRIPTION */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 p-6 shadow-xs space-y-6">
+            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 space-y-6">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-2">
                   Prerequisites & Requirements
@@ -388,22 +388,22 @@ export const CourseDetailPage: React.FC = () => {
             </div>
 
             {/* INSTRUCTOR CARD */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 p-6 shadow-xs">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-4">
+            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4">
                 Instructor Profile
               </h3>
               <div className="flex items-start gap-4">
                 <img
                   src={instructor?.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(instructor?.fullName || 'Staff')}`}
                   alt={instructor?.fullName || 'Instructor'}
-                  className="w-14 h-14 rounded-2xl object-cover border border-slate-200 dark:border-slate-800 shrink-0"
+                  className="w-14 h-14 rounded-full object-cover border border-slate-200 dark:border-slate-800 shrink-0"
                   referrerPolicy="no-referrer"
                 />
                 <div>
                   <h4 className="text-base font-bold text-slate-900 dark:text-white">
                     {instructor?.fullName || 'LearnHub Instructor'}
                   </h4>
-                  <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium mt-0.5">
+                  <p className="text-xs text-[#0056D2] dark:text-blue-400 font-medium mt-0.5">
                     Staff Engineer & Lead Course Creator
                   </p>
                   <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -414,14 +414,14 @@ export const CourseDetailPage: React.FC = () => {
             </div>
 
             {/* REVIEWS & RATINGS */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 p-6 shadow-xs space-y-6">
+            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 space-y-6">
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">
                   Student Feedback & Verified Ratings
                 </h3>
                 
                 {/* Rating summary */}
-                <div className="flex items-center gap-6 mt-4 p-4 bg-slate-50 dark:bg-slate-950 rounded-xl">
+                <div className="flex items-center gap-6 mt-4 p-4 bg-slate-50 dark:bg-slate-950 rounded-lg border border-slate-200 dark:border-slate-800">
                   <div className="text-center shrink-0">
                     <div className="text-4xl font-extrabold text-slate-900 dark:text-white font-mono tabular-nums">
                       {aggregates.ratingAverage.toFixed(1)}
@@ -429,7 +429,7 @@ export const CourseDetailPage: React.FC = () => {
                     <div className="mt-1">
                       <RatingStars rating={aggregates.ratingAverage} size="sm" />
                     </div>
-                    <div className="text-[11px] text-slate-400 mt-1 tabular-nums">
+                    <div className="text-[11px] text-slate-500 mt-1 tabular-nums">
                       {aggregates.totalReviews} reviews
                     </div>
                   </div>
@@ -442,9 +442,9 @@ export const CourseDetailPage: React.FC = () => {
                       return (
                         <div key={stars} className="flex items-center gap-2">
                           <span className="w-10 text-[11px] text-slate-500 font-medium tabular-nums">{stars} stars</span>
-                          <div className="flex-1 h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                          <div className="flex-1 h-2 bg-slate-200 dark:bg-slate-800 rounded overflow-hidden">
                             <div
-                              className="h-full bg-amber-400 rounded-full transition-all"
+                              className="h-full bg-amber-400 rounded transition-all"
                               style={{ width: `${pct}%` }}
                             />
                           </div>
@@ -476,21 +476,21 @@ export const CourseDetailPage: React.FC = () => {
                     value={reviewComment}
                     onChange={(e) => setReviewComment(e.target.value)}
                     placeholder="Share your experience with this course, exercises, and instructor..."
-                    className="w-full p-3 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full p-3 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded focus:outline-none focus:border-[#0056D2]"
                     required
                   />
                   <button
                     type="submit"
                     disabled={reviewMutation.isPending || !reviewComment.trim()}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-lg transition-colors disabled:opacity-50"
+                    className="px-4 py-2 bg-[#0056D2] hover:bg-[#00419e] text-white font-semibold text-xs rounded transition-colors disabled:opacity-50"
                   >
                     {reviewMutation.isPending ? 'Submitting...' : 'Submit Review'}
                   </button>
                 </form>
               ) : (
-                <div className="p-3 bg-slate-50 dark:bg-slate-950 rounded-xl text-xs text-slate-500 flex items-center gap-2">
+                <div className="p-3 bg-slate-50 dark:bg-slate-950 rounded border border-slate-200 dark:border-slate-800 text-xs text-slate-500 flex items-center gap-2">
                   <Lock className="w-4 h-4 text-slate-400 shrink-0" />
-                  <span>Only enrolled students can submit verified reviews for this masterclass.</span>
+                  <span>Only enrolled students can submit verified reviews for this course.</span>
                 </div>
               )}
 
@@ -500,7 +500,7 @@ export const CourseDetailPage: React.FC = () => {
                   <p className="text-xs text-slate-500 italic">No reviews yet. Be the first to enroll and review!</p>
                 ) : (
                   reviews.map((rev) => (
-                    <div key={rev.id} className="p-4 bg-slate-50/70 dark:bg-slate-950/60 rounded-xl border border-slate-100 dark:border-slate-800/60">
+                    <div key={rev.id} className="p-4 bg-slate-50/70 dark:bg-slate-950/60 rounded border border-slate-200 dark:border-slate-800">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2.5">
                           <img
@@ -528,10 +528,10 @@ export const CourseDetailPage: React.FC = () => {
 
           {/* RIGHT 4 COLS: STICKY ENROLL CARD */}
           <div className="lg:col-span-4 lg:sticky lg:top-20 space-y-4">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 p-6 shadow-xl overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 shadow-sm overflow-hidden">
               
               {/* Thumbnail */}
-              <div className="relative aspect-video rounded-xl overflow-hidden mb-5 bg-slate-100 dark:bg-slate-800">
+              <div className="relative aspect-video rounded-md overflow-hidden mb-5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800">
                 <img
                   src={course.thumbnailUrl}
                   alt={course.title}
@@ -540,10 +540,10 @@ export const CourseDetailPage: React.FC = () => {
                 />
                 <button
                   onClick={() => setPreviewVideoUrl('https://www.youtube.com/watch?v=SqcY0GlETPk')}
-                  className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors group"
+                  className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/50 transition-colors group"
                 >
-                  <div className="w-12 h-12 rounded-full bg-white/90 text-indigo-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                    <PlayCircle className="w-7 h-7 fill-indigo-600 text-white" />
+                  <div className="w-12 h-12 rounded-full bg-white text-[#0056D2] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                    <PlayCircle className="w-7 h-7 fill-[#0056D2] text-white" />
                   </div>
                 </button>
               </div>
@@ -552,12 +552,12 @@ export const CourseDetailPage: React.FC = () => {
               <div className="flex items-baseline justify-between mb-4">
                 <div>
                   {!isPaidCourse(course) ? (
-                    <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                    <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
                       Free
                     </span>
                   ) : (
                     <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-extrabold text-slate-900 dark:text-white font-mono tabular-nums">
+                      <span className="text-3xl font-bold text-slate-900 dark:text-white font-mono tabular-nums">
                         {formatInr(course.price)}
                       </span>
                       <span className="text-xs text-slate-400 line-through tabular-nums">
@@ -569,7 +569,7 @@ export const CourseDetailPage: React.FC = () => {
 
                 <button
                   onClick={handleShareClick}
-                  className="p-2 text-slate-400 hover:text-indigo-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  className="p-2 text-slate-500 hover:text-[#0056D2] rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                   title="Share Course"
                 >
                   <Share2 className="w-4 h-4" />
@@ -577,13 +577,13 @@ export const CourseDetailPage: React.FC = () => {
               </div>
 
               {copyLinkSuccess && (
-                <div className="mb-3 p-2 text-center text-xs font-semibold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/60 rounded-lg">
+                <div className="mb-3 p-2 text-center text-xs font-medium text-emerald-700 bg-emerald-50 dark:bg-emerald-950/60 rounded border border-emerald-200 dark:border-emerald-800">
                   Course link copied to clipboard!
                 </div>
               )}
 
               {enrollSuccessMessage && (
-                <div className="mb-3 p-2 text-center text-xs font-semibold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/60 rounded-lg">
+                <div className="mb-3 p-2 text-center text-xs font-medium text-emerald-700 bg-emerald-50 dark:bg-emerald-950/60 rounded border border-emerald-200 dark:border-emerald-800">
                   {enrollSuccessMessage}
                 </div>
               )}
@@ -592,7 +592,7 @@ export const CourseDetailPage: React.FC = () => {
               {isEnrolled ? (
                 <Link
                   to={`/learn/${course.slug}`}
-                  className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2"
                 >
                   <span>Continue Learning</span>
                   <ArrowRight className="w-4 h-4" />
@@ -601,7 +601,7 @@ export const CourseDetailPage: React.FC = () => {
                 <button
                   onClick={handleEnrollClick}
                   disabled={enrollMutation.isPending}
-                  className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5 disabled:opacity-50"
+                  className="w-full py-3 bg-[#0056D2] hover:bg-[#00419e] text-white text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isPaidCourse(course) ? (
                     <>
@@ -620,22 +620,22 @@ export const CourseDetailPage: React.FC = () => {
               {/* Course Features Checklist */}
               <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 space-y-3 text-xs text-slate-600 dark:text-slate-400">
                 <p className="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px]">
-                  This Masterclass Includes:
+                  This Course Includes:
                 </p>
                 <div className="flex items-center gap-2.5">
-                  <PlayCircle className="w-4 h-4 text-indigo-500" />
+                  <PlayCircle className="w-4 h-4 text-[#0056D2]" />
                   <span>{(aggregates.totalDurationMinutes / 60).toFixed(1)} hours on-demand video</span>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <BookOpen className="w-4 h-4 text-indigo-500" />
+                  <BookOpen className="w-4 h-4 text-[#0056D2]" />
                   <span>{aggregates.totalLessons} downloadable lessons & exercises</span>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <Award className="w-4 h-4 text-indigo-500" />
+                  <Award className="w-4 h-4 text-[#0056D2]" />
                   <span>Verifiable Certificate of Completion</span>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-indigo-500" />
+                  <ShieldCheck className="w-4 h-4 text-[#0056D2]" />
                   <span>Full lifetime access across web & mobile</span>
                 </div>
               </div>
@@ -648,13 +648,13 @@ export const CourseDetailPage: React.FC = () => {
 
       {/* VIDEO PREVIEW MODAL */}
       {previewVideoUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-slate-900 rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl border border-slate-800">
-            <div className="p-4 flex items-center justify-between border-b border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
+          <div className="bg-slate-900 rounded-lg max-w-3xl w-full overflow-hidden shadow-lg border border-slate-800">
+            <div className="p-3.5 flex items-center justify-between border-b border-slate-800">
               <span className="text-xs font-semibold text-white">Free Lesson Preview</span>
               <button
                 onClick={() => setPreviewVideoUrl(null)}
-                className="text-slate-400 hover:text-white text-xs font-semibold"
+                className="text-slate-400 hover:text-white text-xs font-semibold px-2 py-1"
               >
                 Close ✕
               </button>

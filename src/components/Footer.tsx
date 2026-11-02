@@ -12,11 +12,11 @@ export const Footer: React.FC = () => {
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center text-white">
-                <BookOpen className="w-5 h-5" />
+              <div className="w-8 h-8 rounded-md bg-[#0056D2] flex items-center justify-center text-white">
+                <BookOpen className="w-4 h-4" />
               </div>
               <span className="text-xl font-bold tracking-tight text-white">
-                Learn<span className="text-indigo-400">Hub</span>
+                Learn<span className="text-blue-400">Hub</span>
               </span>
             </Link>
             <p className="text-sm text-slate-400 max-w-sm leading-relaxed">
@@ -102,7 +102,7 @@ export const Footer: React.FC = () => {
                   href={`tel:${SUPPORT_CONTACT.phoneTel}`}
                   className="text-slate-400 hover:text-white transition-colors flex items-center gap-2"
                 >
-                  <Phone className="w-3.5 h-3.5 text-indigo-400" />
+                  <Phone className="w-3.5 h-3.5 text-blue-400" />
                   <span>{SUPPORT_CONTACT.phone}</span>
                 </a>
               </li>
@@ -111,7 +111,7 @@ export const Footer: React.FC = () => {
                   href={`mailto:${SUPPORT_CONTACT.email}`}
                   className="text-slate-400 hover:text-white transition-colors flex items-center gap-2"
                 >
-                  <Mail className="w-3.5 h-3.5 text-indigo-400" />
+                  <Mail className="w-3.5 h-3.5 text-blue-400" />
                   <span>{SUPPORT_CONTACT.email}</span>
                 </a>
               </li>
@@ -122,7 +122,7 @@ export const Footer: React.FC = () => {
               <li className="pt-2">
                 <Link
                   to="/support"
-                  className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-medium"
+                  className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 font-medium"
                 >
                   Open Support Desk →
                 </Link>

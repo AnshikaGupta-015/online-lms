@@ -336,9 +336,7 @@ export const ProfilePage: React.FC = () => {
         {activityData && (
           <div className="pt-2">
             <LearningStreakHeatmap
-              streak={activityData.streak}
-              days={activityData.days}
-              title="Personal Learning Streak & Consistency"
+              data={activityData}
             />
           </div>
         )}
