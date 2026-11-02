@@ -1,0 +1,6 @@
+{
+  "name": "LearnHub - Online Learning Management System",
+  "description": "Production-grade online learning platform where instructors publish video courses, students enroll, learn, take quizzes and earn accredited certificates, and admins moderate.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
