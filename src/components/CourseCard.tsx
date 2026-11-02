@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Course } from '../types';
+import { Course, isPaidCourse, formatInr } from '../types';
 import { RatingStars } from './RatingStars';
 import { Clock, BookOpen, Users } from 'lucide-react';
 
@@ -92,13 +92,13 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
         {/* Price & Action */}
         <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
           <div>
-            {course.price === 0 ? (
-              <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">
+            {!isPaidCourse(course) ? (
+              <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
                 Free
               </span>
             ) : (
               <span className="text-base font-bold text-slate-900 dark:text-white tabular-nums">
-                ₹{course.price.toLocaleString('en-IN')}
+                {formatInr(course.price)}
               </span>
             )}
           </div>

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../lib/api';
+import { LearningStreakHeatmap } from '../components/LearningStreakHeatmap';
 import { User, Shield, KeyRound, Sparkles, Check, CheckCircle2, Upload } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
@@ -18,6 +20,12 @@ export const ProfilePage: React.FC = () => {
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  const { data: activityData } = useQuery({
+    queryKey: ['studentActivity', user?.id],
+    queryFn: () => api.getStudentActivity(365),
+    enabled: !!user?.id
+  });
 
   const avatarPresets = [
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
@@ -323,6 +331,17 @@ export const ProfilePage: React.FC = () => {
           </div>
 
         </div>
+
+        {/* GitHub-Style Learning Streak Heatmap on Profile */}
+        {activityData && (
+          <div className="pt-2">
+            <LearningStreakHeatmap
+              streak={activityData.streak}
+              days={activityData.days}
+              title="Personal Learning Streak & Consistency"
+            />
+          </div>
+        )}
 
       </div>
     </div>

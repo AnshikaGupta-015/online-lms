@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { RatingStars } from '../components/RatingStars';
+import { CheckoutModal } from '../components/CheckoutModal';
+import { isPaidCourse, formatInr } from '../types';
 import {
   Check,
   PlayCircle,
@@ -19,7 +21,8 @@ import {
   Lock,
   MessageSquare,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  CreditCard
 } from 'lucide-react';
 
 export const CourseDetailPage: React.FC = () => {
@@ -34,6 +37,7 @@ export const CourseDetailPage: React.FC = () => {
   const [reviewComment, setReviewComment] = useState('');
   const [enrollSuccessMessage, setEnrollSuccessMessage] = useState<string | null>(null);
   const [copyLinkSuccess, setCopyLinkSuccess] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   // Fetch Course Detail
   const { data, isLoading, isError, refetch } = useQuery({
@@ -61,7 +65,7 @@ export const CourseDetailPage: React.FC = () => {
     }
   }, [data?.curriculum]);
 
-  // Enroll Mutation
+  // Free Course Enroll Mutation
   const enrollMutation = useMutation({
     mutationFn: (courseId: string) => api.enrollCourse(courseId),
     onSuccess: () => {
@@ -71,6 +75,11 @@ export const CourseDetailPage: React.FC = () => {
       setTimeout(() => {
         navigate(`/learn/${slug}`);
       }, 900);
+    },
+    onError: (err: any) => {
+      if (err.message && err.message.includes('Payment required')) {
+        setCheckoutOpen(true);
+      }
     }
   });
 
@@ -89,7 +98,11 @@ export const CourseDetailPage: React.FC = () => {
       navigate(`/login?redirect=/courses/${slug}`);
       return;
     }
-    if (data?.course) {
+    if (!data?.course) return;
+
+    if (isPaidCourse(data.course)) {
+      setCheckoutOpen(true);
+    } else {
       enrollMutation.mutate(data.course.id);
     }
   };
@@ -538,17 +551,17 @@ export const CourseDetailPage: React.FC = () => {
               {/* Price */}
               <div className="flex items-baseline justify-between mb-4">
                 <div>
-                  {course.price === 0 ? (
+                  {!isPaidCourse(course) ? (
                     <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
                       Free
                     </span>
                   ) : (
                     <div className="flex items-baseline gap-2">
                       <span className="text-3xl font-extrabold text-slate-900 dark:text-white font-mono tabular-nums">
-                        ₹{course.price.toLocaleString('en-IN')}
+                        {formatInr(course.price)}
                       </span>
                       <span className="text-xs text-slate-400 line-through tabular-nums">
-                        ₹{Math.round(course.price * 1.5).toLocaleString('en-IN')}
+                        {formatInr(Math.round(course.price * 1.5))}
                       </span>
                     </div>
                   )}
@@ -579,7 +592,7 @@ export const CourseDetailPage: React.FC = () => {
               {isEnrolled ? (
                 <Link
                   to={`/learn/${course.slug}`}
-                  className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
                 >
                   <span>Continue Learning</span>
                   <ArrowRight className="w-4 h-4" />
@@ -588,10 +601,19 @@ export const CourseDetailPage: React.FC = () => {
                 <button
                   onClick={handleEnrollClick}
                   disabled={enrollMutation.isPending}
-                  className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-xs font-bold rounded-xl shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5"
+                  className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5 disabled:opacity-50"
                 >
-                  <span>{enrollMutation.isPending ? 'Enrolling...' : 'Enroll in Masterclass'}</span>
-                  <ArrowRight className="w-4 h-4" />
+                  {isPaidCourse(course) ? (
+                    <>
+                      <CreditCard className="w-4 h-4" />
+                      <span>Buy now / Enroll for {formatInr(course.price)}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{enrollMutation.isPending ? 'Enrolling...' : 'Enroll Free'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
                 </button>
               )}
 
@@ -648,6 +670,21 @@ export const CourseDetailPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* UPI CHECKOUT MODAL */}
+      {checkoutOpen && (
+        <CheckoutModal
+          course={course}
+          isOpen={checkoutOpen}
+          onClose={() => setCheckoutOpen(false)}
+          onSuccess={() => {
+            setCheckoutOpen(false);
+            queryClient.invalidateQueries({ queryKey: ['courseDetail', slug] });
+            queryClient.invalidateQueries({ queryKey: ['studentDashboard'] });
+            navigate(`/learn/${course.slug}`);
+          }}
+        />
       )}
 
     </div>

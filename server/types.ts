@@ -15,7 +15,13 @@ import {
   QuizAttempt,
   UserRole,
   CertificateRecord,
-  SupportTicket
+  SupportTicket,
+  Order,
+  OrderStatus,
+  StudyNote,
+  Assignment,
+  AssignmentSubmission,
+  LearningActivityDay
 } from '../src/types';
 
 export interface User extends BaseUser {
@@ -38,8 +44,24 @@ export type {
   QuizAttempt,
   UserRole,
   CertificateRecord,
-  SupportTicket
+  SupportTicket,
+  Order,
+  OrderStatus,
+  StudyNote,
+  Assignment,
+  AssignmentSubmission,
+  LearningActivityDay
 };
+
+export interface LearningActivityRecord {
+  id: string; // `${userId}_${date}`
+  userId: string;
+  date: string; // YYYY-MM-DD
+  lessonsCompleted: number;
+  minutes: number;
+  quizzesAttempted: number;
+  updatedAt: string;
+}
 
 export interface LessonProgress {
   id: string;
@@ -92,4 +114,10 @@ export interface DatabaseState {
   chatMessages: ChatMessage[];
   certificates: CertificateRecord[];
   supportTickets: SupportTicket[];
+  orders: Order[];
+  learningActivity: LearningActivityRecord[];
+  studyNotes: StudyNote[];
+  assignments: Assignment[];
+  assignmentSubmissions: AssignmentSubmission[];
 }
+

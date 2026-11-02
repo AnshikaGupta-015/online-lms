@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { LifeBuoy, Plus, Loader2, MessageSquare, MapPin, X, Send } from 'lucide-react';
+import { LifeBuoy, Plus, Loader2, MessageSquare, MapPin, X, Send, Phone, Mail, Clock, Headphones } from 'lucide-react';
 import { api } from '../lib/api';
 import { TicketCategory, TicketPriority } from '../types';
 import { TicketThread } from '../components/TicketThread';
 import { CATEGORY_LABELS, PRIORITY_LABELS, StatusBadge, formatTicketDate } from '../components/TicketBadges';
+import { SUPPORT_CONTACT } from '../lib/constants';
 
 const SUBJECT_MAX = 120;
 const DESCRIPTION_MAX = 4000;
@@ -154,7 +155,64 @@ export const SupportPage: React.FC = () => {
         </div>
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white">Help & Support</h1>
-          <p className="text-xs text-slate-500">Found an error or have a complaint? Raise a ticket and we will get back to you.</p>
+          <p className="text-xs text-slate-500">Found an error or have a complaint? Raise a ticket or reach our support desk directly.</p>
+        </div>
+      </div>
+
+      {/* Direct Contact Channels Card */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 p-5 shadow-xs">
+        <div className="flex items-center gap-2 mb-3">
+          <Headphones className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+            Customer Support Channels
+          </h2>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <a
+            href={`tel:${SUPPORT_CONTACT.phoneTel}`}
+            className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-slate-100 dark:border-slate-800 transition-colors group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+              <Phone className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Phone Support</p>
+              <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                {SUPPORT_CONTACT.phone}
+              </p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Click to call directly</p>
+            </div>
+          </a>
+
+          <a
+            href={`mailto:${SUPPORT_CONTACT.email}`}
+            className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-slate-100 dark:border-slate-800 transition-colors group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+              <Mail className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Direct Email</p>
+              <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                {SUPPORT_CONTACT.email}
+              </p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Average reply &lt; 2 hours</p>
+            </div>
+          </a>
+
+          <div className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+            <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+              <Clock className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Operating Hours</p>
+              <p className="text-xs font-bold text-slate-900 dark:text-white">
+                {SUPPORT_CONTACT.workingHours}
+              </p>
+              <p className="text-[10px] text-slate-400 mt-0.5">{SUPPORT_CONTACT.timezone}</p>
+            </div>
+          </div>
         </div>
       </div>
 

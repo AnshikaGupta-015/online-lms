@@ -209,3 +209,188 @@ export interface SupportTicket {
   updatedAt: string;
   resolvedAt?: string | null;
 }
+
+// ==========================================
+// COURSE PRICING & PAYMENT HELPER (SINGLE SOURCE OF TRUTH)
+// ==========================================
+
+/**
+ * Strict Payment Trigger Rule:
+ * The ONLY condition for a paid course is Number(course.price) > 0.
+ * Even a course priced at ₹1 must open the full UPI checkout.
+ * Only price === 0 is free, and free courses keep one-click enroll with NO payment UI.
+ */
+export function isPaidCourse(course: { price?: number | null } | null | undefined): boolean {
+  if (!course || course.price === undefined || course.price === null) return false;
+  const num = Number(course.price);
+  return !isNaN(num) && num > 0;
+}
+
+/**
+ * Format currency amount into INR (₹).
+ * Never rounds small non-zero amounts to free.
+ */
+export function formatInr(price: number | null | undefined): string {
+  if (price === undefined || price === null) return '₹0';
+  const num = Number(price);
+  if (isNaN(num) || num === 0) return 'Free';
+  return `₹${num.toLocaleString('en-IN', {
+    minimumFractionDigits: Number.isInteger(num) ? 0 : 2,
+    maximumFractionDigits: 2
+  })}`;
+}
+
+/**
+ * Format integer paise into INR (₹).
+ */
+export function formatPaise(paise: number): string {
+  const inr = paise / 100;
+  return `₹${inr.toLocaleString('en-IN', {
+    minimumFractionDigits: Number.isInteger(inr) ? 0 : 2,
+    maximumFractionDigits: 2
+  })}`;
+}
+
+// ==========================================
+// DUMMY UPI ORDERS & PAYMENTS
+// ==========================================
+
+export type OrderStatus = 'created' | 'paid' | 'failed';
+
+export interface Order {
+  id: string;
+  orderNumber: string; // e.g. LH-ORD-2026-1001
+  userId: string;
+  userEmail?: string;
+  userName?: string;
+  courseId: string;
+  courseTitle: string;
+  courseThumbnail?: string;
+  instructorName?: string;
+  basePricePaise: number;
+  gstPaise: number; // 18% GST
+  totalAmountPaise: number;
+  currency: 'INR';
+  status: OrderStatus;
+  upiId?: string;
+  maskedUpiId?: string;
+  transactionId?: string;
+  paymentMethod: 'upi';
+  createdAt: string;
+  paidAt?: string | null;
+  failureReason?: string | null;
+}
+
+// ==========================================
+// LEARNING STREAK & HEATMAP
+// ==========================================
+
+export interface LearningActivityDay {
+  date: string; // YYYY-MM-DD (IST boundary)
+  lessonsCompleted: number;
+  minutes: number;
+  quizzesAttempted: number;
+  intensity: 0 | 1 | 2 | 3 | 4;
+}
+
+export interface LearningStreakData {
+  days: LearningActivityDay[];
+  currentStreak: number;
+  longestStreak: number;
+  totalActiveDays: number;
+  totalLessonsCompleted: number;
+  totalMinutesLearned: number;
+}
+
+// ==========================================
+// STUDY NOTES & ASSIGNMENTS
+// ==========================================
+
+export interface StudyNote {
+  id: string;
+  courseId: string;
+  sectionId: string;
+  sectionTitle: string;
+  title: string;
+  content: string; // Markdown
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AssignmentType = 'written' | 'link' | 'both';
+export type SubmissionStatus = 'not_started' | 'submitted' | 'graded' | 'late';
+
+export interface Assignment {
+  id: string;
+  courseId: string;
+  courseTitle?: string;
+  sectionId?: string;
+  sectionTitle?: string;
+  title: string;
+  instructions: string; // Markdown
+  dueDate: string; // ISO date
+  maxMarks: number;
+  type: AssignmentType;
+  createdAt: string;
+  updatedAt: string;
+  submissionCount?: number;
+  userSubmission?: AssignmentSubmission | null;
+}
+
+export interface AssignmentSubmission {
+  id: string;
+  assignmentId: string;
+  courseId: string;
+  userId: string;
+  studentName: string;
+  studentEmail: string;
+  submissionType: AssignmentType;
+  content?: string;
+  linkUrl?: string;
+  status: SubmissionStatus;
+  submittedAt: string;
+  gradedAt?: string | null;
+  marks?: number | null;
+  feedback?: string | null;
+  gradedBy?: string | null;
+}
+
+// ==========================================
+// PROGRESS REPORT
+// ==========================================
+
+export interface CourseProgressDetail {
+  courseId: string;
+  courseTitle: string;
+  courseSlug: string;
+  thumbnailUrl: string;
+  categoryName: string;
+  progressPercent: number;
+  totalLessons: number;
+  completedLessons: number;
+  totalDurationMinutes: number;
+  learnedDurationMinutes: number;
+  lastActivityAt?: string | null;
+  bestQuizScore?: number | null;
+  certificateCode?: string | null;
+  status: 'completed' | 'in_progress' | 'not_started';
+}
+
+export interface StudentReportData {
+  summary: {
+    enrolledCount: number;
+    completedCount: number;
+    inProgressCount: number;
+    certificatesCount: number;
+    averageQuizScore: number;
+    totalHoursLearned: number;
+    totalLessonsCompleted: number;
+  };
+  courseStatusBreakdown: { name: string; value: number; color: string }[];
+  categoryTimeBreakdown: { name: string; lessons: number; minutes: number; color: string }[];
+  courseProgressList: CourseProgressDetail[];
+  weeklyLessonActivity: { week: string; lessonsCompleted: number; minutesLearned: number }[];
+  quizScoresOverTime: { date: string; quizTitle: string; score: number; passPercentage: number; passed: boolean }[];
+  streak: LearningStreakData;
+}

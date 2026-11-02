@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, ShieldCheck, Award, Heart } from 'lucide-react';
+import { BookOpen, ShieldCheck, Award, Heart, Phone, Mail, Clock } from 'lucide-react';
+import { SUPPORT_CONTACT } from '../lib/constants';
 
 export const Footer: React.FC = () => {
   return (
@@ -92,21 +93,39 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Legal / Contact */}
+          {/* Support & Contact */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Trust & Quality</h4>
+            <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Contact & Support</h4>
             <ul className="space-y-2 text-sm">
-              <li className="text-slate-400">
-                100% Verified Curriculum
+              <li>
+                <a
+                  href={`tel:${SUPPORT_CONTACT.phoneTel}`}
+                  className="text-slate-400 hover:text-white transition-colors flex items-center gap-2"
+                >
+                  <Phone className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>{SUPPORT_CONTACT.phone}</span>
+                </a>
               </li>
-              <li className="text-slate-400">
-                Independent Instructor Reviews
+              <li>
+                <a
+                  href={`mailto:${SUPPORT_CONTACT.email}`}
+                  className="text-slate-400 hover:text-white transition-colors flex items-center gap-2"
+                >
+                  <Mail className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>{SUPPORT_CONTACT.email}</span>
+                </a>
               </li>
-              <li className="text-slate-400">
-                Cryptographic Cert ID Check
+              <li className="text-xs text-slate-400 flex items-start gap-2 pt-1">
+                <Clock className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" />
+                <span>{SUPPORT_CONTACT.workingHours}</span>
               </li>
-              <li className="text-slate-400">
-                Enterprise Standards Compliant
+              <li className="pt-2">
+                <Link
+                  to="/support"
+                  className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-medium"
+                >
+                  Open Support Desk →
+                </Link>
               </li>
             </ul>
           </div>

@@ -24,9 +24,13 @@ import {
   HelpCircle,
   FolderDown,
   ExternalLink,
-  Sparkles
+  Sparkles,
+  Download,
+  Send,
+  Calendar
 } from 'lucide-react';
 import { ChatBot } from '../components/ChatBot';
+import { MarkdownView } from '../components/MarkdownView';
 
 export const LessonPlayerPage: React.FC = () => {
   const { courseSlug, lessonId: paramLessonId } = useParams<{ courseSlug: string; lessonId?: string }>();
@@ -36,16 +40,55 @@ export const LessonPlayerPage: React.FC = () => {
 
   const [activeLessonId, setActiveLessonId] = useState<string | null>(paramLessonId || null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'notes' | 'resources' | 'ask-ai'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'study-notes' | 'assignments' | 'notes' | 'resources' | 'ask-ai'>('overview');
   const [currentNote, setCurrentNote] = useState<string>('');
   const [noteSaved, setNoteSaved] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+
+  // Assignment submission modal state
+  const [submittingAssignment, setSubmittingAssignment] = useState<any | null>(null);
+  const [submissionContent, setSubmissionContent] = useState('');
+  const [submissionRepoUrl, setSubmissionRepoUrl] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   // Fetch learning course data
   const { data, isLoading, isError } = useQuery({
     queryKey: ['learnCourse', courseSlug],
     queryFn: () => api.getLearnCourse(courseSlug!),
     enabled: !!courseSlug
+  });
+
+  const { data: studyNotes = [] } = useQuery({
+    queryKey: ['courseStudyNotes', data?.course?.id],
+    queryFn: () => api.getCourseStudyNotes(data!.course.id),
+    enabled: !!data?.course?.id
+  });
+
+  const { data: courseAssignments = [] } = useQuery({
+    queryKey: ['courseAssignments', data?.course?.id],
+    queryFn: () => api.getCourseAssignments(data!.course.id),
+    enabled: !!data?.course?.id
+  });
+
+  const submitAssignmentMutation = useMutation({
+    mutationFn: (payload: { assignmentId: string; content?: string; repoUrl?: string }) =>
+      api.submitAssignment(payload.assignmentId, {
+        content: payload.content,
+        repoUrl: payload.repoUrl
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courseAssignments', data?.course?.id] });
+      queryClient.invalidateQueries({ queryKey: ['myAssignments'] });
+      setSubmitSuccess(true);
+      setTimeout(() => {
+        setSubmitSuccess(false);
+        setSubmittingAssignment(null);
+      }, 1500);
+    },
+    onError: (err: any) => {
+      setSubmitError(err.message || 'Failed to submit assignment');
+    }
   });
 
   // Extract all lessons list flat
@@ -425,6 +468,28 @@ export const LessonPlayerPage: React.FC = () => {
                 Overview & Objectives
               </button>
               <button
+                onClick={() => setActiveTab('study-notes')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+                  activeTab === 'study-notes'
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>Section Notes ({studyNotes.length})</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('assignments')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+                  activeTab === 'assignments'
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Award className="w-3.5 h-3.5" />
+                <span>Assignments ({courseAssignments.length})</span>
+              </button>
+              <button
                 onClick={() => setActiveTab('notes')}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                   activeTab === 'notes'
@@ -432,7 +497,7 @@ export const LessonPlayerPage: React.FC = () => {
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Personal Notes
+                Personal Notebook
               </button>
               <button
                 onClick={() => setActiveTab('resources')}
@@ -448,12 +513,12 @@ export const LessonPlayerPage: React.FC = () => {
                 onClick={() => setActiveTab('ask-ai')}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors ${
                   activeTab === 'ask-ai'
-                    ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-xs'
+                    ? 'bg-indigo-600 text-white shadow-xs'
                     : 'text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/40 border border-indigo-500/30'
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>Ask LearnHub AI</span>
+                <span>Ask AI Tutor</span>
               </button>
             </div>
 
@@ -472,6 +537,199 @@ export const LessonPlayerPage: React.FC = () => {
                     <li>• Verify compliance with Row-Level Security and audit logs</li>
                   </ul>
                 </div>
+              </div>
+            )}
+
+            {/* TAB: SECTION STUDY NOTES (MARKDOWN + DOWNLOAD) */}
+            {activeTab === 'study-notes' && (
+              <div className="space-y-6 max-w-4xl text-xs text-slate-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Accredited Section Lecture Notes</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Comprehensive instructor notes and code references for every module.</p>
+                  </div>
+                  <Link
+                    to="/notes-assignments"
+                    className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+                  >
+                    <span>Full Notebook View →</span>
+                  </Link>
+                </div>
+
+                {studyNotes.length === 0 ? (
+                  <div className="p-8 text-center bg-slate-900 rounded-2xl border border-slate-800 text-slate-400">
+                    No section notes published for this course yet.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {studyNotes.map((note) => (
+                      <div
+                        key={note.id}
+                        className="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-4"
+                      >
+                        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                          <div>
+                            <h4 className="text-sm font-bold text-white">{note.title}</h4>
+                            <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
+                              <span>{note.sectionTitle}</span>
+                              <span>·</span>
+                              <span>{note.estimatedReadMinutes} min read</span>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => {
+                              const blob = new Blob([note.content], { type: 'text/markdown;charset=utf-8' });
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `${note.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.md`;
+                              document.body.appendChild(a);
+                              a.click();
+                              document.body.removeChild(a);
+                              URL.revokeObjectURL(url);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition-colors border border-slate-700"
+                            title="Download markdown notes"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>Download .md</span>
+                          </button>
+                        </div>
+
+                        <div className="prose prose-invert prose-xs max-w-none text-slate-300">
+                          <MarkdownView content={note.content} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB: ASSIGNMENTS & TASKS */}
+            {activeTab === 'assignments' && (
+              <div className="space-y-6 max-w-4xl text-xs text-slate-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Course Practical Assignments</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Hands-on architectural exercises and code projects evaluated by faculty.</p>
+                  </div>
+                  <Link
+                    to="/notes-assignments"
+                    className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+                  >
+                    <span>All Assignments Hub →</span>
+                  </Link>
+                </div>
+
+                {courseAssignments.length === 0 ? (
+                  <div className="p-8 text-center bg-slate-900 rounded-2xl border border-slate-800 text-slate-400">
+                    No assignments published for this course yet.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {courseAssignments.map(({ assignment, submission }) => {
+                      const isGraded = submission?.status === 'graded';
+                      const isSubmitted = !!submission;
+
+                      return (
+                        <div
+                          key={assignment.id}
+                          className="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-4"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-400 px-2 py-0.5 rounded bg-indigo-950/60 border border-indigo-800/40">
+                                  {assignment.submissionType === 'link' ? 'Repo Link Submission' : 'Written Submission'}
+                                </span>
+                                {assignment.dueDate && (
+                                  <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                                    <Calendar className="w-3 h-3" />
+                                    <span>Due {new Date(assignment.dueDate).toLocaleDateString()}</span>
+                                  </span>
+                                )}
+                              </div>
+                              <h4 className="text-sm font-bold text-white mt-1.5">{assignment.title}</h4>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              {isGraded ? (
+                                <span className="px-3 py-1 bg-emerald-950/60 text-emerald-400 border border-emerald-800/50 rounded-lg font-bold text-xs">
+                                  Graded: {submission.score} / {assignment.maxScore} marks
+                                </span>
+                              ) : isSubmitted ? (
+                                <span className="px-3 py-1 bg-amber-950/60 text-amber-400 border border-amber-800/50 rounded-lg font-bold text-xs">
+                                  Submitted (Under Review)
+                                </span>
+                              ) : (
+                                <span className="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg font-semibold text-xs">
+                                  Not Submitted ({assignment.maxScore} pts)
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <p className="text-slate-300 leading-relaxed">{assignment.instructions}</p>
+                            {assignment.rubric && assignment.rubric.length > 0 && (
+                              <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800/60 space-y-1 text-[11px]">
+                                <span className="font-semibold text-slate-400 uppercase tracking-wider text-[10px]">Evaluation Rubric:</span>
+                                <ul className="space-y-0.5 text-slate-400">
+                                  {assignment.rubric.map((r: string, i: number) => (
+                                    <li key={i}>• {r}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Student submission display & instructor feedback */}
+                          {submission && (
+                            <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800/80 space-y-2 text-xs">
+                              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Your Submission</div>
+                              {submission.repoUrl && (
+                                <a
+                                  href={submission.repoUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-indigo-400 hover:underline flex items-center gap-1 font-mono text-[11px]"
+                                >
+                                  <span>{submission.repoUrl}</span>
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              )}
+                              {submission.content && (
+                                <p className="text-slate-300 whitespace-pre-wrap">{submission.content}</p>
+                              )}
+                              {submission.feedback && (
+                                <div className="mt-2 pt-2 border-t border-slate-800 text-emerald-400">
+                                  <span className="font-semibold">Instructor Feedback: </span>
+                                  <span>{submission.feedback}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          <div className="pt-2 flex justify-end">
+                            <button
+                              onClick={() => {
+                                setSubmittingAssignment(assignment);
+                                setSubmissionContent(submission?.content || '');
+                                setSubmissionRepoUrl(submission?.repoUrl || '');
+                                setSubmitError('');
+                              }}
+                              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors"
+                            >
+                              {isSubmitted ? 'Update Submission' : 'Submit Assignment'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
@@ -675,6 +933,105 @@ export const LessonPlayerPage: React.FC = () => {
         </div>
 
       </div>
+
+      {/* ASSIGNMENT SUBMISSION MODAL */}
+      {submittingAssignment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-lg w-full space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div>
+                <span className="text-[10px] font-mono text-indigo-400 uppercase tracking-wider">
+                  Assignment Submission
+                </span>
+                <h3 className="text-sm font-bold text-white">{submittingAssignment.title}</h3>
+              </div>
+              <button
+                onClick={() => setSubmittingAssignment(null)}
+                className="text-slate-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            {submitSuccess && (
+              <div className="p-3 bg-emerald-950/60 border border-emerald-800 text-emerald-400 rounded-xl text-xs font-semibold text-center">
+                Assignment submitted successfully! Evaluation pending.
+              </div>
+            )}
+
+            {submitError && (
+              <div className="p-3 bg-rose-950/60 border border-rose-800 text-rose-400 rounded-xl text-xs">
+                {submitError}
+              </div>
+            )}
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setSubmitError('');
+                if (submittingAssignment.submissionType === 'link' && !submissionRepoUrl.trim()) {
+                  setSubmitError('Please provide a repository URL or link.');
+                  return;
+                }
+                submitAssignmentMutation.mutate({
+                  assignmentId: submittingAssignment.id,
+                  content: submissionContent.trim(),
+                  repoUrl: submissionRepoUrl.trim() || undefined
+                });
+              }}
+              className="space-y-4 text-xs"
+            >
+              {submittingAssignment.submissionType === 'link' && (
+                <div>
+                  <label className="font-semibold text-slate-300 block mb-1">
+                    Repository / Project URL *
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://github.com/your-username/project-repo"
+                    value={submissionRepoUrl}
+                    onChange={(e) => setSubmissionRepoUrl(e.target.value)}
+                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white font-mono placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    required
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="font-semibold text-slate-300 block mb-1">
+                  Submission Notes / Written Analysis *
+                </label>
+                <textarea
+                  rows={5}
+                  placeholder="Detail your architectural decisions, trade-offs, and instructions for reproducing your work..."
+                  value={submissionContent}
+                  onChange={(e) => setSubmissionContent(e.target.value)}
+                  className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  required={submittingAssignment.submissionType !== 'link'}
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setSubmittingAssignment(null)}
+                  className="px-3 py-1.5 text-xs text-slate-400 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitAssignmentMutation.isPending}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-xs transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>{submitAssignmentMutation.isPending ? 'Submitting...' : 'Submit to Faculty'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* 100% COMPLETION CELEBRATION MODAL (A.5) */}
       {showCelebration && (

@@ -29,7 +29,7 @@ export class MongoStore {
   private saving: Promise<void> = Promise.resolve();
 
   async connect(uri: string, dbName: string) {
-    this.client = new MongoClient(uri);
+    this.client = new MongoClient(uri, { serverSelectionTimeoutMS: 3000, connectTimeoutMS: 3000 });
     await this.client.connect();
     this.db = this.client.db(dbName);
     await this.ensureIndexes();
@@ -43,6 +43,13 @@ export class MongoStore {
     await this.db.collection('sections').createIndex({ courseId: 1 });
     await this.db.collection('lessons').createIndex({ sectionId: 1 });
     await this.db.collection('supportTickets').createIndex({ userId: 1, updatedAt: -1 });
+    await this.db.collection('orders').createIndex({ userId: 1, createdAt: -1 });
+    await this.db.collection('orders').createIndex({ courseId: 1 });
+    await this.db.collection('orders').createIndex({ status: 1 });
+    await this.db.collection('learningActivity').createIndex({ userId: 1, date: 1 }, { unique: true });
+    await this.db.collection('studyNotes').createIndex({ courseId: 1, sectionId: 1 });
+    await this.db.collection('assignments').createIndex({ courseId: 1 });
+    await this.db.collection('assignmentSubmissions').createIndex({ assignmentId: 1, userId: 1 });
   }
 
   /** Returns null when the database is empty (first run). */

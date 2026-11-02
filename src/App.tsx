@@ -22,6 +22,9 @@ import { InstructorDashboardPage } from './pages/InstructorDashboardPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { SupportPage } from './pages/SupportPage';
+import { ProgressReportPage } from './pages/ProgressReportPage';
+import { ReceiptsPage } from './pages/ReceiptsPage';
+import { NotesAssignmentsPage } from './pages/NotesAssignmentsPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
@@ -114,13 +117,43 @@ export default function App() {
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-              {/* Student Portal */}
+              {/* Student Portal & Learning Tools */}
               <Route
                 path="/dashboard"
                 element={
                   <ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}>
                     <StandardLayout>
                       <StudentDashboardPage />
+                    </StandardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/progress"
+                element={
+                  <ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}>
+                    <StandardLayout>
+                      <ProgressReportPage />
+                    </StandardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/receipts"
+                element={
+                  <ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}>
+                    <StandardLayout>
+                      <ReceiptsPage />
+                    </StandardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/notes-assignments"
+                element={
+                  <ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}>
+                    <StandardLayout>
+                      <NotesAssignmentsPage />
                     </StandardLayout>
                   </ProtectedRoute>
                 }

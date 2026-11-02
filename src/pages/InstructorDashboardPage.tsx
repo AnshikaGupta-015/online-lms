@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { StatCard } from '../components/StatCard';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { formatInr, isPaidCourse } from '../types';
 import { TableSkeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
 import {
@@ -27,7 +29,8 @@ import {
   ChevronDown,
   Check,
   HelpCircle,
-  BarChart3
+  BarChart3,
+  FileText
 } from 'lucide-react';
 
 export const InstructorDashboardPage: React.FC = () => {
@@ -436,6 +439,13 @@ export const InstructorDashboardPage: React.FC = () => {
             >
               Enrolled Students
             </button>
+            <Link
+              to="/notes-assignments"
+              className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-colors"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Assignments & Grading Studio →</span>
+            </Link>
           </div>
 
           {/* TAB 1: COURSES TABLE */}
@@ -500,7 +510,7 @@ export const InstructorDashboardPage: React.FC = () => {
                           </td>
 
                           <td className="px-5 py-4 font-mono font-semibold tabular-nums text-slate-900 dark:text-white">
-                            {course.price === 0 ? 'Free' : `₹${Math.round(course.price).toLocaleString('en-IN')}`}
+                            {!isPaidCourse(course) ? 'Free' : formatInr(course.price)}
                           </td>
 
                           <td className="px-5 py-4 font-mono tabular-nums text-slate-600 dark:text-slate-400">

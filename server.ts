@@ -5,11 +5,20 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import crypto from 'crypto';
-import dns from 'dns';
-dns.setServers(['8.8.8.8', '1.1.1.1']);
 import { GoogleGenAI } from '@google/genai';
 import { migrateDatabase, generateCertCode } from './server/coursesMigration';
-import { ChatSession, ChatMessage, CertificateRecord, SupportTicket } from './server/types';
+import {
+  ChatSession,
+  ChatMessage,
+  CertificateRecord,
+  SupportTicket,
+  Order,
+  LearningActivityRecord,
+  StudyNote,
+  Assignment,
+  AssignmentSubmission,
+  LearningActivityDay
+} from './server/types';
 import { MongoStore } from './server/mongo';
 import { hashPassword, verifyPassword, signToken, verifyToken } from './server/auth';
 
@@ -166,6 +175,11 @@ export interface DatabaseState {
   chatMessages: ChatMessage[];
   certificates: CertificateRecord[];
   supportTickets: SupportTicket[];
+  orders: Order[];
+  learningActivity: LearningActivityRecord[];
+  studyNotes: StudyNote[];
+  assignments: Assignment[];
+  assignmentSubmissions: AssignmentSubmission[];
 }
 
 const DATA_DIR = path.resolve(__dirname, 'data');
@@ -783,7 +797,12 @@ function getInitialSeedData(): DatabaseState {
     chatSessions: [],
     chatMessages: [],
     certificates: [],
-    supportTickets: []
+    supportTickets: [],
+    orders: [],
+    learningActivity: [],
+    studyNotes: [],
+    assignments: [],
+    assignmentSubmissions: []
   };
   migrateDatabase(seedState);
   return seedState;
@@ -794,7 +813,8 @@ function getInitialSeedData(): DatabaseState {
 const COLLECTIONS = [
   'users', 'profiles', 'userRoles', 'categories', 'courses', 'sections', 'lessons',
   'enrollments', 'lessonProgress', 'reviews', 'quizzes', 'quizQuestions', 'quizAttempts',
-  'notes', 'chatSessions', 'chatMessages', 'certificates', 'supportTickets'
+  'notes', 'chatSessions', 'chatMessages', 'certificates', 'supportTickets',
+  'orders', 'learningActivity', 'studyNotes', 'assignments', 'assignmentSubmissions'
 ];
 
 class DatabaseManager {
@@ -805,24 +825,29 @@ class DatabaseManager {
   async init() {
     const uri = process.env.MONGODB_URI;
     if (uri) {
-      this.mongo = new MongoStore();
-      await this.mongo.connect(uri, process.env.MONGODB_DB || 'learnhub');
-      const loaded = await this.mongo.loadAll(COLLECTIONS);
-      if (loaded) {
-        this.state = loaded as unknown as DatabaseState;
-        for (const c of COLLECTIONS) if (!this.state[c as keyof DatabaseState]) (this.state as any)[c] = [];
-        if (migrateDatabase(this.state)) await this.flush();
-        console.log(`[mongo] loaded ${this.state.users.length} users, ${this.state.courses.length} courses`);
+      try {
+        this.mongo = new MongoStore();
+        await this.mongo.connect(uri, process.env.MONGODB_DB || 'learnhub');
+        const loaded = await this.mongo.loadAll(COLLECTIONS);
+        if (loaded) {
+          this.state = loaded as unknown as DatabaseState;
+          for (const c of COLLECTIONS) if (!this.state[c as keyof DatabaseState]) (this.state as any)[c] = [];
+          if (migrateDatabase(this.state)) await this.flush();
+          console.log(`[mongo] loaded ${this.state.users.length} users, ${this.state.courses.length} courses`);
+          return;
+        }
+        // Empty Mongo: import existing JSON data (or fresh seed) once
+        console.log('[mongo] database empty, importing initial data...');
+        this.state = this.loadFromFile();
+        await this.flush();
+        console.log(`[mongo] imported ${this.state.users.length} users, ${this.state.courses.length} courses`);
         return;
+      } catch (err) {
+        console.warn('[mongo] Could not connect to MongoDB or connection failed, falling back to local database.json:', err);
+        this.mongo = null;
       }
-      // Empty Mongo: import existing JSON data (or fresh seed) once
-      console.log('[mongo] database empty, importing initial data...');
-      this.state = this.loadFromFile();
-      await this.flush();
-      console.log(`[mongo] imported ${this.state.users.length} users, ${this.state.courses.length} courses`);
-      return;
     }
-    console.warn('[db] MONGODB_URI not set: using local data/database.json');
+    console.warn('[db] MONGODB_URI not set or offline: using local data/database.json');
     this.state = this.loadFromFile();
   }
 
@@ -891,6 +916,55 @@ export function hasRole(userId: string, role: Role): boolean {
 export function getUserRole(userId: string): Role {
   const roleEntry = db.getState().userRoles.find(r => r.userId === userId);
   return roleEntry ? roleEntry.role : 'student';
+}
+
+// Strict Payment Trigger Rule: ONLY price > 0 is paid. Even ₹1 opens full checkout. Only 0 is free.
+export function isPaidCourse(course: { price?: number | null } | null | undefined): boolean {
+  if (!course || course.price === undefined || course.price === null) return false;
+  const num = Number(course.price);
+  return !isNaN(num) && num > 0;
+}
+
+// Format IST (Asia/Kolkata) date string YYYY-MM-DD
+export function getIstDateString(d: Date | string = new Date()): string {
+  const dateObj = typeof d === 'string' ? new Date(d) : d;
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(dateObj);
+}
+
+// Record learning activity for streak heatmap
+export function recordLearningActivity(userId: string, lessonDuration = 15, isQuiz = false) {
+  const state = db.getState();
+  if (!state.learningActivity) state.learningActivity = [];
+  const dateStr = getIstDateString(new Date());
+  const actId = `${userId}_${dateStr}`;
+  let act = state.learningActivity.find(a => a.id === actId);
+
+  if (act) {
+    if (isQuiz) {
+      act.quizzesAttempted = (act.quizzesAttempted || 0) + 1;
+      act.minutes = (act.minutes || 0) + lessonDuration;
+    } else {
+      act.lessonsCompleted = (act.lessonsCompleted || 0) + 1;
+      act.minutes = (act.minutes || 0) + lessonDuration;
+    }
+    act.updatedAt = new Date().toISOString();
+  } else {
+    state.learningActivity.push({
+      id: actId,
+      userId,
+      date: dateStr,
+      lessonsCompleted: isQuiz ? 0 : 1,
+      minutes: lessonDuration,
+      quizzesAttempted: isQuiz ? 1 : 0,
+      updatedAt: new Date().toISOString()
+    });
+  }
+  db.save();
 }
 
 // Middleware: Authenticate User from Bearer token
@@ -1393,6 +1467,20 @@ async function startServer() {
       return res.json({ success: true, enrollment: existing, message: 'Already enrolled.' });
     }
 
+    // STRICT PAYMENT TRIGGER CHECK:
+    // If course is paid (price > 0), user MUST have a 'paid' order in state.orders
+    if (isPaidCourse(course)) {
+      const paidOrder = (state.orders || []).find(o => o.userId === userId && o.courseId === course.id && o.status === 'paid');
+      if (!paidOrder) {
+        return res.status(402).json({
+          error: `Payment required. This course is priced at ₹${course.price}. Please complete UPI payment to enroll.`,
+          requiresPayment: true,
+          courseId: course.id,
+          price: course.price
+        });
+      }
+    }
+
     const newEnrollment: Enrollment = {
       id: `enr-${crypto.randomUUID()}`,
       userId,
@@ -1563,6 +1651,11 @@ async function startServer() {
         completedAt: completed ? new Date().toISOString() : undefined
       };
       state.lessonProgress.push(progress);
+    }
+
+    if (completed) {
+      const lesson = state.lessons.find(l => l.id === lessonId);
+      recordLearningActivity(userId, lesson?.durationMinutes || 15, false);
     }
 
     // Check if entire course is completed
@@ -1825,6 +1918,7 @@ async function startServer() {
       }
     }
 
+    recordLearningActivity(userId, 15, true);
     db.save();
 
     return res.json({
@@ -2150,6 +2244,11 @@ async function startServer() {
       return res.status(400).json({ error: 'Title, description, and category are required.' });
     }
 
+    const numericPrice = Number(price);
+    if (price === undefined || price === null || isNaN(numericPrice) || numericPrice < 0) {
+      return res.status(400).json({ error: 'Price must be a valid non-negative number in INR (₹). For a free course, set price to 0.' });
+    }
+
     const state = db.getState();
     const courseId = `crs-${crypto.randomUUID()}`;
     const baseSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
@@ -2164,7 +2263,7 @@ async function startServer() {
       thumbnailUrl: thumbnailUrl || '/src/assets/images/course_banner_coding_1793389667734.jpg',
       categoryId,
       level: level || 'beginner',
-      price: typeof price === 'number' ? price : 0,
+      price: numericPrice,
       language: language || 'English',
       whatYouWillLearn: Array.isArray(whatYouWillLearn) ? whatYouWillLearn : [],
       requirements: Array.isArray(requirements) ? requirements : [],
@@ -2222,9 +2321,13 @@ async function startServer() {
     if (shortDescription !== undefined) course.shortDescription = shortDescription;
     if (description !== undefined) course.description = description;
     if (categoryId) course.categoryId = categoryId;
-    if (level) course.level = level;
-    if (typeof price === 'number') course.price = price;
-    if (language) course.language = language;
+    if (price !== undefined) {
+      const numericPrice = Number(price);
+      if (price === null || isNaN(numericPrice) || numericPrice < 0) {
+        return res.status(400).json({ error: 'Price must be a valid non-negative number in INR (₹). For a free course, set price to 0.' });
+      }
+      course.price = numericPrice;
+    }
     if (Array.isArray(whatYouWillLearn)) course.whatYouWillLearn = whatYouWillLearn;
     if (Array.isArray(requirements)) course.requirements = requirements;
     if (thumbnailUrl) course.thumbnailUrl = thumbnailUrl;
@@ -2693,18 +2796,812 @@ async function startServer() {
   });
 
   // -------------------------------------------------------------
+  // DUMMY UPI PAYMENTS API (Task 1)
+  // -------------------------------------------------------------
+
+  // Create an order for a course
+  app.post('/api/payments/orders', requireAuth, (req: Request, res: Response) => {
+    const userId = (req as any).userId;
+    const { courseId } = req.body;
+    if (!courseId) return res.status(400).json({ error: 'courseId is required.' });
+
+    const state = db.getState();
+    const course = state.courses.find(c => (c.id === courseId || c.slug === courseId) && c.status === 'published');
+    if (!course) return res.status(404).json({ error: 'Published course not found.' });
+
+    // Strict payment trigger rule: only price > 0 requires payment
+    if (!isPaidCourse(course)) {
+      return res.status(400).json({ error: 'This course is free. Please enroll directly without payment.' });
+    }
+
+    // Check if already enrolled
+    const alreadyEnrolled = state.enrollments.some(e => e.userId === userId && e.courseId === course.id);
+    if (alreadyEnrolled) {
+      return res.status(400).json({ error: 'You are already enrolled in this course.' });
+    }
+
+    // Re-check price from database (NEVER trust client amounts)
+    // Stored in integer paise (amount * 100)
+    const basePricePaise = Math.round(Number(course.price) * 100);
+    const gstPaise = Math.round(basePricePaise * 0.18);
+    const totalAmountPaise = basePricePaise + gstPaise;
+
+    const user = state.users.find(u => u.id === userId);
+    const profile = state.profiles.find(p => p.id === userId);
+    const instructor = state.profiles.find(p => p.id === course.instructorId);
+
+    if (!state.orders) state.orders = [];
+
+    // Idempotent check: check for an existing created order for this course
+    const existingCreatedOrder = state.orders.find(o => o.userId === userId && o.courseId === course.id && o.status === 'created');
+    if (existingCreatedOrder) {
+      existingCreatedOrder.basePricePaise = basePricePaise;
+      existingCreatedOrder.gstPaise = gstPaise;
+      existingCreatedOrder.totalAmountPaise = totalAmountPaise;
+      db.save();
+      return res.json(existingCreatedOrder);
+    }
+
+    const orderNumber = `LH-ORD-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+    const newOrder: Order = {
+      id: `ord-${crypto.randomUUID()}`,
+      orderNumber,
+      userId,
+      userEmail: user?.email || '',
+      userName: profile?.fullName || 'Student',
+      courseId: course.id,
+      courseTitle: course.title,
+      courseThumbnail: course.thumbnailUrl,
+      instructorName: instructor?.fullName || 'LearnHub Instructor',
+      basePricePaise,
+      gstPaise,
+      totalAmountPaise,
+      currency: 'INR',
+      status: 'created',
+      paymentMethod: 'upi',
+      createdAt: new Date().toISOString(),
+      paidAt: null,
+      failureReason: null
+    };
+
+    state.orders.push(newOrder);
+    db.save();
+    return res.status(201).json(newOrder);
+  });
+
+  // Execute dummy UPI payment
+  app.post('/api/payments/orders/:id/pay', requireAuth, (req: Request, res: Response) => {
+    const userId = (req as any).userId;
+    const { id } = req.params;
+    const { upiId } = req.body;
+    const state = db.getState();
+
+    const order = (state.orders || []).find(o => o.id === id && o.userId === userId);
+    if (!order) return res.status(404).json({ error: 'Order not found.' });
+
+    // Validate UPI ID format
+    const upiRegex = /^[a-zA-Z0-9.\-_]{2,49}@[a-zA-Z]{2,}$/;
+    if (!upiId || typeof upiId !== 'string' || !upiRegex.test(upiId.trim())) {
+      return res.status(400).json({ error: 'Please enter a valid UPI ID (e.g. yourname@oksbi or username@upi).' });
+    }
+
+    const cleanUpi = upiId.trim();
+
+    // If order was already paid, return it idempotently
+    if (order.status === 'paid') {
+      const existingEnr = state.enrollments.find(e => e.userId === userId && e.courseId === order.courseId);
+      return res.json({ success: true, order, enrollment: existingEnr });
+    }
+
+    // Mask UPI ID
+    const atIdx = cleanUpi.indexOf('@');
+    const userPart = cleanUpi.slice(0, atIdx);
+    const handlePart = cleanUpi.slice(atIdx);
+    const masked = userPart.length > 2
+      ? userPart[0] + '*'.repeat(userPart.length - 2) + userPart[userPart.length - 1] + handlePart
+      : userPart[0] + '*@' + handlePart.slice(1);
+
+    // Simulated failure test rule: if UPI ID contains 'fail' (case-insensitive)
+    if (cleanUpi.toLowerCase().includes('fail')) {
+      order.status = 'failed';
+      order.upiId = masked;
+      order.maskedUpiId = masked;
+      order.failureReason = 'Payment declined by issuing bank: Simulated demo transaction failure.';
+      db.save();
+      return res.status(400).json({ error: order.failureReason, order });
+    }
+
+    // Success path
+    order.status = 'paid';
+    order.upiId = masked;
+    order.maskedUpiId = masked;
+    order.transactionId = `UPI-${new Date().getFullYear()}-${crypto.randomBytes(6).toString('hex').toUpperCase()}`;
+    order.paidAt = new Date().toISOString();
+    order.failureReason = null;
+
+    // Auto-enroll user in the course
+    let enrollment = state.enrollments.find(e => e.userId === userId && e.courseId === order.courseId);
+    if (!enrollment) {
+      enrollment = {
+        id: `enr-${crypto.randomUUID()}`,
+        userId,
+        courseId: order.courseId,
+        enrolledAt: order.paidAt,
+        completedAt: null,
+        certificateId: null
+      };
+      state.enrollments.push(enrollment);
+    }
+
+    db.save();
+    return res.json({ success: true, order, enrollment });
+  });
+
+  // Get current user's payment history
+  app.get('/api/payments/my', requireAuth, (req: Request, res: Response) => {
+    const userId = (req as any).userId;
+    const orders = (db.getState().orders || [])
+      .filter(o => o.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return res.json(orders);
+  });
+
+  // Get printable receipt by order id
+  app.get('/api/payments/receipt/:orderId', requireAuth, (req: Request, res: Response) => {
+    const userId = (req as any).userId;
+    const { orderId } = req.params;
+    const state = db.getState();
+    const order = (state.orders || []).find(o => o.id === orderId || o.orderNumber === orderId);
+    if (!order) return res.status(404).json({ error: 'Receipt not found.' });
+
+    const isAdmin = hasRole(userId, 'admin');
+    if (order.userId !== userId && !isAdmin) {
+      return res.status(403).json({ error: 'Unauthorized to view this receipt.' });
+    }
+
+    const course = state.courses.find(c => c.id === order.courseId);
+    const user = state.users.find(u => u.id === order.userId);
+    const profile = state.profiles.find(p => p.id === order.userId);
+
+    return res.json({
+      order,
+      course,
+      student: {
+        id: order.userId,
+        name: profile?.fullName || order.userName || 'Student',
+        email: user?.email || order.userEmail || ''
+      }
+    });
+  });
+
+  // Admin: Get all payments & revenue analytics
+  app.get('/api/admin/payments', requireAuth, requireRole('admin'), (req: Request, res: Response) => {
+    const { status, search } = req.query;
+    const state = db.getState();
+    let orders = [...(state.orders || [])];
+
+    if (status && typeof status === 'string' && status !== 'all') {
+      orders = orders.filter(o => o.status === status);
+    }
+
+    if (search && typeof search === 'string') {
+      const q = search.toLowerCase();
+      orders = orders.filter(o =>
+        o.orderNumber.toLowerCase().includes(q) ||
+        o.courseTitle.toLowerCase().includes(q) ||
+        (o.userName && o.userName.toLowerCase().includes(q)) ||
+        (o.userEmail && o.userEmail.toLowerCase().includes(q)) ||
+        (o.transactionId && o.transactionId.toLowerCase().includes(q))
+      );
+    }
+
+    orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    const paidOrders = (state.orders || []).filter(o => o.status === 'paid');
+    const totalRevenuePaise = paidOrders.reduce((sum, o) => sum + (o.totalAmountPaise || 0), 0);
+    const totalOrders = (state.orders || []).length;
+    const paidCount = paidOrders.length;
+    const failedCount = (state.orders || []).filter(o => o.status === 'failed').length;
+
+    return res.json({
+      orders,
+      stats: {
+        totalRevenuePaise,
+        totalRevenueInr: totalRevenuePaise / 100,
+        totalOrders,
+        paidCount,
+        failedCount
+      }
+    });
+  });
+
+  // -------------------------------------------------------------
+  // LEARNING STREAK & HEATMAP API (Task 3)
+  // -------------------------------------------------------------
+
+  app.get('/api/student/activity', requireAuth, (req: Request, res: Response) => {
+    const userId = (req.query.userId as string) || (req as any).userId;
+    if (userId !== (req as any).userId && !hasRole((req as any).userId, 'admin')) {
+      return res.status(403).json({ error: 'Unauthorized.' });
+    }
+
+    const state = db.getState();
+    const rangeDays = Math.min(365, parseInt((req.query.range as string) || '365', 10));
+
+    const now = new Date();
+    const userActs = (state.learningActivity || []).filter(a => a.userId === userId);
+    const actMap = new Map<string, LearningActivityRecord>();
+    userActs.forEach(a => actMap.set(a.date, a));
+
+    // Generate date sequence for the past rangeDays ending today
+    const days: LearningActivityDay[] = [];
+    for (let i = rangeDays - 1; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 86400000);
+      const dateStr = getIstDateString(d);
+      const record = actMap.get(dateStr);
+      const lessons = record?.lessonsCompleted || 0;
+      const minutes = record?.minutes || 0;
+      const quizzes = record?.quizzesAttempted || 0;
+
+      let intensity: 0 | 1 | 2 | 3 | 4 = 0;
+      if (minutes >= 60 || lessons >= 4) intensity = 4;
+      else if (minutes >= 30 || lessons >= 3) intensity = 3;
+      else if (minutes >= 15 || lessons >= 2) intensity = 2;
+      else if (minutes > 0 || lessons > 0 || quizzes > 0) intensity = 1;
+
+      days.push({
+        date: dateStr,
+        lessonsCompleted: lessons,
+        minutes,
+        quizzesAttempted: quizzes,
+        intensity
+      });
+    }
+
+    // Calculate current streak in IST
+    let currentStreak = 0;
+    const todayStr = getIstDateString(now);
+    const yesterdayStr = getIstDateString(new Date(now.getTime() - 86400000));
+    
+    let checkDate = new Date(now);
+    if (!actMap.has(todayStr) && actMap.has(yesterdayStr)) {
+      checkDate = new Date(now.getTime() - 86400000);
+    }
+
+    while (true) {
+      const dStr = getIstDateString(checkDate);
+      const act = actMap.get(dStr);
+      if (act && (act.lessonsCompleted > 0 || act.minutes > 0 || act.quizzesAttempted > 0)) {
+        currentStreak++;
+        checkDate = new Date(checkDate.getTime() - 86400000);
+      } else {
+        break;
+      }
+    }
+
+    // Calculate longest streak
+    const sortedDates = Array.from(actMap.keys())
+      .filter(d => {
+        const a = actMap.get(d);
+        return a && (a.lessonsCompleted > 0 || a.minutes > 0 || a.quizzesAttempted > 0);
+      })
+      .sort();
+
+    let longestStreak = 0;
+    let tempStreak = 0;
+    let prevDate: Date | null = null;
+
+    for (const dStr of sortedDates) {
+      const currDate = new Date(dStr + 'T00:00:00Z');
+      if (prevDate) {
+        const diffDays = Math.round((currDate.getTime() - prevDate.getTime()) / 86400000);
+        if (diffDays === 1) {
+          tempStreak++;
+        } else {
+          tempStreak = 1;
+        }
+      } else {
+        tempStreak = 1;
+      }
+      if (tempStreak > longestStreak) longestStreak = tempStreak;
+      prevDate = currDate;
+    }
+
+    const totalActiveDays = sortedDates.length;
+    const totalLessonsCompleted = userActs.reduce((sum, a) => sum + (a.lessonsCompleted || 0), 0);
+    const totalMinutesLearned = userActs.reduce((sum, a) => sum + (a.minutes || 0), 0);
+
+    return res.json({
+      days,
+      currentStreak,
+      longestStreak: Math.max(longestStreak, currentStreak),
+      totalActiveDays,
+      totalLessonsCompleted,
+      totalMinutesLearned
+    });
+  });
+
+  // -------------------------------------------------------------
+  // STUDENT PROGRESS REPORT API (Task 4)
+  // -------------------------------------------------------------
+
+  app.get('/api/student/report', requireAuth, (req: Request, res: Response) => {
+    const userId = (req as any).userId;
+    const state = db.getState();
+
+    const enrollments = state.enrollments.filter(e => e.userId === userId);
+    const certs = (state.certificates || []).filter(c => c.userId === userId && !c.revoked);
+    const attempts = (state.quizAttempts || []).filter(a => a.userId === userId);
+
+    let totalLessonsCount = 0;
+    let completedLessonsCount = 0;
+    let totalMinutesLearned = 0;
+
+    const categoryTimeMap = new Map<string, { lessons: number; minutes: number }>();
+
+    const courseProgressList = enrollments.map(enr => {
+      const course = state.courses.find(c => c.id === enr.courseId);
+      if (!course) return null;
+
+      const category = state.categories.find(cat => cat.id === course.categoryId);
+      const sections = state.sections.filter(s => s.courseId === course.id);
+      const secIds = new Set(sections.map(s => s.id));
+      const courseLessons = state.lessons.filter(l => secIds.has(l.sectionId));
+      const totalLessons = courseLessons.length;
+
+      const completedInCourse = courseLessons.filter(l =>
+        state.lessonProgress.some(p => p.userId === userId && p.lessonId === l.id && p.completed)
+      );
+
+      const completedLessons = completedInCourse.length;
+      totalLessonsCount += totalLessons;
+      completedLessonsCount += completedLessons;
+
+      const totalDurationMinutes = courseLessons.reduce((acc, l) => acc + (l.durationMinutes || 0), 0);
+      const learnedDurationMinutes = completedInCourse.reduce((acc, l) => acc + (l.durationMinutes || 0), 0);
+      totalMinutesLearned += learnedDurationMinutes;
+
+      // Category breakdown
+      const catName = category?.name || 'General';
+      const catStat = categoryTimeMap.get(catName) || { lessons: 0, minutes: 0 };
+      catStat.lessons += completedLessons;
+      catStat.minutes += learnedDurationMinutes;
+      categoryTimeMap.set(catName, catStat);
+
+      // Quiz & certificate
+      const quiz = state.quizzes.find(q => q.courseId === course.id);
+      const courseAttempts = quiz ? attempts.filter(a => a.quizId === quiz.id) : [];
+      const bestScore = courseAttempts.length > 0 ? Math.max(...courseAttempts.map(a => a.score)) : null;
+
+      const cert = certs.find(c => c.courseId === course.id);
+
+      // Last activity
+      const lastProg = state.lessonProgress
+        .filter(p => p.userId === userId && courseLessons.some(l => l.id === p.lessonId) && p.completedAt)
+        .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())[0];
+
+      const progressPercent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+      const status: 'completed' | 'in_progress' | 'not_started' =
+        progressPercent === 100 || enr.completedAt
+          ? 'completed'
+          : progressPercent > 0
+          ? 'in_progress'
+          : 'not_started';
+
+      return {
+        courseId: course.id,
+        courseTitle: course.title,
+        courseSlug: course.slug,
+        thumbnailUrl: course.thumbnailUrl,
+        categoryName: catName,
+        progressPercent,
+        totalLessons,
+        completedLessons,
+        totalDurationMinutes,
+        learnedDurationMinutes,
+        lastActivityAt: lastProg?.completedAt || enr.enrolledAt,
+        bestQuizScore: bestScore,
+        certificateCode: cert?.code || null,
+        status
+      };
+    }).filter(Boolean);
+
+    const completedCount = courseProgressList.filter(c => c?.status === 'completed').length;
+    const inProgressCount = courseProgressList.filter(c => c?.status === 'in_progress').length;
+    const notStartedCount = courseProgressList.filter(c => c?.status === 'not_started').length;
+
+    // Course status donut data
+    const courseStatusBreakdown = [
+      { name: 'Completed', value: completedCount, color: '#10B981' },
+      { name: 'In Progress', value: inProgressCount, color: '#0056D2' },
+      { name: 'Not Started', value: notStartedCount, color: '#94A3B8' }
+    ].filter(item => item.value > 0);
+
+    // Category breakdown colors
+    const catColors = ['#0056D2', '#0284C7', '#0D9488', '#16A34A', '#EAB308', '#EA580C', '#8B5CF6'];
+    const categoryTimeBreakdown = Array.from(categoryTimeMap.entries()).map(([name, stat], idx) => ({
+      name,
+      lessons: stat.lessons,
+      minutes: stat.minutes,
+      color: catColors[idx % catColors.length]
+    }));
+
+    // Average quiz score
+    const avgQuizScore = attempts.length > 0
+      ? Math.round(attempts.reduce((sum, a) => sum + a.score, 0) / attempts.length)
+      : 0;
+
+    // Weekly lesson activity (past 12 weeks)
+    const now = new Date();
+    const weeklyLessonActivity: { week: string; lessonsCompleted: number; minutesLearned: number }[] = [];
+    for (let w = 11; w >= 0; w--) {
+      const weekStart = new Date(now.getTime() - (w * 7 + 6) * 86400000);
+      const weekEnd = new Date(now.getTime() - w * 7 * 86400000);
+      const weekLabel = `Wk ${12 - w}`;
+
+      const actsInWeek = (state.learningActivity || []).filter(a => {
+        if (a.userId !== userId) return false;
+        const d = new Date(a.date + 'T00:00:00Z');
+        return d >= weekStart && d <= weekEnd;
+      });
+
+      const lessons = actsInWeek.reduce((sum, a) => sum + (a.lessonsCompleted || 0), 0);
+      const minutes = actsInWeek.reduce((sum, a) => sum + (a.minutes || 0), 0);
+
+      weeklyLessonActivity.push({
+        week: weekLabel,
+        lessonsCompleted: lessons,
+        minutesLearned: minutes
+      });
+    }
+
+    // Quiz scores over time
+    const quizScoresOverTime = attempts
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+      .map(att => {
+        const qz = state.quizzes.find(q => q.id === att.quizId);
+        return {
+          date: att.createdAt.split('T')[0],
+          quizTitle: qz?.title || 'Exam',
+          score: att.score,
+          passPercentage: qz?.passPercentage || 75,
+          passed: att.passed
+        };
+      });
+
+    // Summary
+    const summary = {
+      enrolledCount: enrollments.length,
+      completedCount,
+      inProgressCount,
+      certificatesCount: certs.length,
+      averageQuizScore: avgQuizScore,
+      totalHoursLearned: Number((totalMinutesLearned / 60).toFixed(1)),
+      totalLessonsCompleted: completedLessonsCount
+    };
+
+    return res.json({
+      summary,
+      courseStatusBreakdown,
+      categoryTimeBreakdown,
+      courseProgressList,
+      weeklyLessonActivity,
+      quizScoresOverTime
+    });
+  });
+
+  // -------------------------------------------------------------
+  // STUDY NOTES & ASSIGNMENTS API (Task 5)
+  // -------------------------------------------------------------
+
+  // Get study notes for a course
+  app.get('/api/courses/:courseId/study-notes', requireAuth, (req: Request, res: Response) => {
+    const { courseId } = req.params;
+    const userId = (req as any).userId;
+    const state = db.getState();
+
+    const course = state.courses.find(c => c.id === courseId || c.slug === courseId);
+    if (!course) return res.status(404).json({ error: 'Course not found.' });
+
+    const notes = (state.studyNotes || [])
+      .filter(n => n.courseId === course.id)
+      .sort((a, b) => a.order - b.order);
+
+    // Also get the student's personal notes for this course's lessons
+    const sections = state.sections.filter(s => s.courseId === course.id);
+    const secIds = new Set(sections.map(s => s.id));
+    const lessons = state.lessons.filter(l => secIds.has(l.sectionId));
+    const lessonMap = new Map(lessons.map(l => [l.id, l.title]));
+
+    const personalNotes = (state.notes || [])
+      .filter(n => n.userId === userId && lessonMap.has(n.lessonId))
+      .map(n => ({
+        ...n,
+        lessonTitle: lessonMap.get(n.lessonId)
+      }));
+
+    return res.json({
+      courseTitle: course.title,
+      studyNotes: notes,
+      personalNotes
+    });
+  });
+
+  // Get all assignments for a course
+  app.get('/api/courses/:courseId/assignments', requireAuth, (req: Request, res: Response) => {
+    const { courseId } = req.params;
+    const userId = (req as any).userId;
+    const state = db.getState();
+
+    const course = state.courses.find(c => c.id === courseId || c.slug === courseId);
+    if (!course) return res.status(404).json({ error: 'Course not found.' });
+
+    const assignments = (state.assignments || [])
+      .filter(a => a.courseId === course.id)
+      .map(a => {
+        const userSub = (state.assignmentSubmissions || []).find(s => s.assignmentId === a.id && s.userId === userId);
+        const subCount = (state.assignmentSubmissions || []).filter(s => s.assignmentId === a.id).length;
+        return {
+          ...a,
+          submissionCount: subCount,
+          userSubmission: userSub || null
+        };
+      });
+
+    return res.json({
+      courseTitle: course.title,
+      assignments
+    });
+  });
+
+  // Get student's global assignments across all enrolled courses
+  app.get('/api/student/assignments', requireAuth, (req: Request, res: Response) => {
+    const userId = (req as any).userId;
+    const state = db.getState();
+
+    const enrolledCourseIds = new Set(
+      state.enrollments.filter(e => e.userId === userId).map(e => e.courseId)
+    );
+
+    const assignments = (state.assignments || [])
+      .filter(a => enrolledCourseIds.has(a.courseId))
+      .map(a => {
+        const course = state.courses.find(c => c.id === a.courseId);
+        const userSub = (state.assignmentSubmissions || []).find(s => s.assignmentId === a.id && s.userId === userId);
+        return {
+          ...a,
+          courseTitle: course?.title || 'Course',
+          courseSlug: course?.slug || '',
+          userSubmission: userSub || null
+        };
+      })
+      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+
+    return res.json(assignments);
+  });
+
+  // Student: submit or update assignment
+  app.post('/api/assignments/:id/submit', requireAuth, (req: Request, res: Response) => {
+    const { id } = req.params;
+    const userId = (req as any).userId;
+    const { content, linkUrl, submissionType } = req.body;
+    const state = db.getState();
+
+    const assignment = (state.assignments || []).find(a => a.id === id);
+    if (!assignment) return res.status(404).json({ error: 'Assignment not found.' });
+
+    // Ensure student is enrolled in the course
+    const isEnrolled = state.enrollments.some(e => e.userId === userId && e.courseId === assignment.courseId);
+    if (!isEnrolled && !hasRole(userId, 'admin')) {
+      return res.status(403).json({ error: 'You must be enrolled in this course to submit assignments.' });
+    }
+
+    if (!content && !linkUrl) {
+      return res.status(400).json({ error: 'Please provide either written response content or a link.' });
+    }
+
+    const user = state.users.find(u => u.id === userId);
+    const profile = state.profiles.find(p => p.id === userId);
+    const now = new Date();
+    const isLate = now > new Date(assignment.dueDate);
+
+    if (!state.assignmentSubmissions) state.assignmentSubmissions = [];
+    let sub = state.assignmentSubmissions.find(s => s.assignmentId === id && s.userId === userId);
+
+    if (sub) {
+      if (sub.status === 'graded') {
+        return res.status(400).json({ error: 'This assignment has already been evaluated and graded. Submissions cannot be modified.' });
+      }
+      sub.content = content !== undefined ? content : sub.content;
+      sub.linkUrl = linkUrl !== undefined ? linkUrl : sub.linkUrl;
+      sub.submissionType = submissionType || sub.submissionType;
+      sub.status = isLate ? 'late' : 'submitted';
+      sub.submittedAt = now.toISOString();
+    } else {
+      sub = {
+        id: `sub-${crypto.randomUUID()}`,
+        assignmentId: id,
+        courseId: assignment.courseId,
+        userId,
+        studentName: profile?.fullName || 'Student',
+        studentEmail: user?.email || '',
+        submissionType: submissionType || assignment.type,
+        content: content || '',
+        linkUrl: linkUrl || '',
+        status: isLate ? 'late' : 'submitted',
+        submittedAt: now.toISOString(),
+        gradedAt: null,
+        marks: null,
+        feedback: null,
+        gradedBy: null
+      };
+      state.assignmentSubmissions.push(sub);
+    }
+
+    db.save();
+    return res.json({ success: true, submission: sub });
+  });
+
+  // Instructor: Get submissions for an assignment
+  app.get('/api/instructor/assignments/:id/submissions', requireAuth, requireRole('instructor'), (req: Request, res: Response) => {
+    const { id } = req.params;
+    const instructorId = (req as any).userId;
+    const state = db.getState();
+
+    const assignment = (state.assignments || []).find(a => a.id === id);
+    if (!assignment) return res.status(404).json({ error: 'Assignment not found.' });
+
+    const course = state.courses.find(c => c.id === assignment.courseId);
+    if (course?.instructorId !== instructorId && !hasRole(instructorId, 'admin')) {
+      return res.status(403).json({ error: 'Unauthorized to view submissions for this course.' });
+    }
+
+    const submissions = (state.assignmentSubmissions || []).filter(s => s.assignmentId === id);
+    return res.json({
+      assignment,
+      submissions
+    });
+  });
+
+  // Instructor: Grade a submission
+  app.put('/api/instructor/submissions/:id/grade', requireAuth, requireRole('instructor'), (req: Request, res: Response) => {
+    const { id } = req.params;
+    const instructorId = (req as any).userId;
+    const { marks, feedback } = req.body;
+    const state = db.getState();
+
+    const sub = (state.assignmentSubmissions || []).find(s => s.id === id);
+    if (!sub) return res.status(404).json({ error: 'Submission not found.' });
+
+    const assignment = (state.assignments || []).find(a => a.id === sub.assignmentId);
+    const course = state.courses.find(c => c.id === sub.courseId);
+    if (course?.instructorId !== instructorId && !hasRole(instructorId, 'admin')) {
+      return res.status(403).json({ error: 'Unauthorized to grade this submission.' });
+    }
+
+    const numericMarks = Number(marks);
+    if (isNaN(numericMarks) || numericMarks < 0 || (assignment && numericMarks > assignment.maxMarks)) {
+      return res.status(400).json({ error: `Marks must be a number between 0 and ${assignment?.maxMarks || 100}.` });
+    }
+
+    sub.marks = numericMarks;
+    sub.feedback = feedback || '';
+    sub.status = 'graded';
+    sub.gradedAt = new Date().toISOString();
+    sub.gradedBy = instructorId;
+
+    db.save();
+    return res.json({ success: true, submission: sub });
+  });
+
+  // Instructor: Create assignment
+  app.post('/api/instructor/courses/:courseId/assignments', requireAuth, requireRole('instructor'), (req: Request, res: Response) => {
+    const { courseId } = req.params;
+    const instructorId = (req as any).userId;
+    const { title, instructions, dueDate, maxMarks, type, sectionId } = req.body;
+    const state = db.getState();
+
+    const course = state.courses.find(c => c.id === courseId);
+    if (!course) return res.status(404).json({ error: 'Course not found.' });
+    if (course.instructorId !== instructorId && !hasRole(instructorId, 'admin')) {
+      return res.status(403).json({ error: 'Unauthorized.' });
+    }
+
+    if (!title || !instructions || !dueDate) {
+      return res.status(400).json({ error: 'Title, instructions, and due date are required.' });
+    }
+
+    if (!state.assignments) state.assignments = [];
+    const section = state.sections.find(s => s.id === sectionId);
+
+    const newAssignment: Assignment = {
+      id: `asg-${crypto.randomUUID()}`,
+      courseId,
+      courseTitle: course.title,
+      sectionId: sectionId || undefined,
+      sectionTitle: section?.title || undefined,
+      title,
+      instructions,
+      dueDate: new Date(dueDate).toISOString(),
+      maxMarks: Number(maxMarks) || 50,
+      type: type || 'both',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    state.assignments.push(newAssignment);
+    db.save();
+    return res.status(201).json(newAssignment);
+  });
+
+  // Instructor: Update assignment
+  app.put('/api/instructor/assignments/:id', requireAuth, requireRole('instructor'), (req: Request, res: Response) => {
+    const { id } = req.params;
+    const instructorId = (req as any).userId;
+    const { title, instructions, dueDate, maxMarks, type } = req.body;
+    const state = db.getState();
+
+    const assignment = (state.assignments || []).find(a => a.id === id);
+    if (!assignment) return res.status(404).json({ error: 'Assignment not found.' });
+
+    const course = state.courses.find(c => c.id === assignment.courseId);
+    if (course?.instructorId !== instructorId && !hasRole(instructorId, 'admin')) {
+      return res.status(403).json({ error: 'Unauthorized.' });
+    }
+
+    if (title) assignment.title = title;
+    if (instructions) assignment.instructions = instructions;
+    if (dueDate) assignment.dueDate = new Date(dueDate).toISOString();
+    if (maxMarks !== undefined) assignment.maxMarks = Number(maxMarks);
+    if (type) assignment.type = type;
+    assignment.updatedAt = new Date().toISOString();
+
+    db.save();
+    return res.json(assignment);
+  });
+
+  // Instructor: Delete assignment
+  app.delete('/api/instructor/assignments/:id', requireAuth, requireRole('instructor'), (req: Request, res: Response) => {
+    const { id } = req.params;
+    const instructorId = (req as any).userId;
+    const state = db.getState();
+
+    const assignment = (state.assignments || []).find(a => a.id === id);
+    if (!assignment) return res.status(404).json({ error: 'Assignment not found.' });
+
+    const course = state.courses.find(c => c.id === assignment.courseId);
+    if (course?.instructorId !== instructorId && !hasRole(instructorId, 'admin')) {
+      return res.status(403).json({ error: 'Unauthorized.' });
+    }
+
+    state.assignments = (state.assignments || []).filter(a => a.id !== id);
+    state.assignmentSubmissions = (state.assignmentSubmissions || []).filter(s => s.assignmentId !== id);
+    db.save();
+    return res.json({ success: true, message: 'Assignment deleted.' });
+  });
+
+  // -------------------------------------------------------------
   // AI TUTOR CHATBOT API (Ask LearnHub AI)
   // -------------------------------------------------------------
 
-  // Initialize Gemini AI Client (Server-side)
-  const ai = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build'
-      }
+  // Initialize Gemini AI Client (Server-side) safely
+  let ai: GoogleGenAI | null = null;
+  try {
+    if (process.env.GEMINI_API_KEY) {
+      ai = new GoogleGenAI({
+        apiKey: process.env.GEMINI_API_KEY,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build'
+          }
+        }
+      });
+    } else {
+      console.warn('[gemini] GEMINI_API_KEY is not set. Chatbot will return placeholder tutor response.');
     }
-  });
+  } catch (err) {
+    console.warn('[gemini] Failed to initialize GoogleGenAI client:', err);
+  }
 
   // Hourly Rate Limit Tracker: 20 messages per user per hour
   const userMessageTimestamps = new Map<string, number[]>();
@@ -2862,6 +3759,14 @@ async function startServer() {
 
     // Send initial session announcement
     res.write(`data: ${JSON.stringify({ type: 'session', sessionId: targetSession.id, title: targetSession.title })}\n\n`);
+
+    if (!ai) {
+      const fallbackText = "LearnHub AI tutor is online. To enable live AI intelligence, configure GEMINI_API_KEY in your environment variables.";
+      res.write(`data: ${JSON.stringify({ type: 'chunk', text: fallbackText })}\n\n`);
+      res.write(`data: ${JSON.stringify({ type: 'done', fullText: fallbackText })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      return res.end();
+    }
 
     try {
       // Only send the most recent messages to keep requests fast

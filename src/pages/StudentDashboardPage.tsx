@@ -7,6 +7,7 @@ import { StatCard } from '../components/StatCard';
 import { ProgressBar } from '../components/ProgressBar';
 import { EmptyState } from '../components/EmptyState';
 import { TableSkeleton } from '../components/Skeleton';
+import { LearningStreakHeatmap } from '../components/LearningStreakHeatmap';
 import {
   BookOpen,
   Award,
@@ -14,7 +15,12 @@ import {
   ArrowRight,
   PlayCircle,
   CheckCircle2,
-  ExternalLink
+  ExternalLink,
+  BarChart3,
+  FileText,
+  Calendar,
+  ChevronRight,
+  Sparkles
 } from 'lucide-react';
 
 export const StudentDashboardPage: React.FC = () => {
@@ -29,6 +35,18 @@ export const StudentDashboardPage: React.FC = () => {
     enabled: !!user?.id,
     staleTime: 0,
     refetchOnMount: 'always'
+  });
+
+  const { data: activityData } = useQuery({
+    queryKey: ['studentActivity', user?.id],
+    queryFn: () => api.getStudentActivity(365),
+    enabled: !!user?.id
+  });
+
+  const { data: assignmentsData } = useQuery({
+    queryKey: ['myAssignments', user?.id],
+    queryFn: () => api.getMyAssignments(),
+    enabled: !!user?.id
   });
 
   if (isLoading || !user) {
@@ -94,6 +112,145 @@ export const StudentDashboardPage: React.FC = () => {
             icon={<Clock className="w-5 h-5 text-violet-500" />}
           />
         </div>
+
+        {/* QUICK NAVIGATION ACTION STRIP */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Link
+            to="/progress"
+            className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 shadow-2xs hover:border-indigo-400 dark:hover:border-indigo-600 transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                <BarChart3 className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  Progress Analytics
+                </p>
+                <p className="text-[11px] text-slate-400">Charts, transcript & printable report</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+
+          <Link
+            to="/notes-assignments"
+            className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 shadow-2xs hover:border-emerald-400 dark:hover:border-emerald-600 transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <FileText className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                  Notes & Tasks
+                </p>
+                <p className="text-[11px] text-slate-400">Lecture notes & homework submissions</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+
+          <Link
+            to="/receipts"
+            className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 shadow-2xs hover:border-amber-400 dark:hover:border-amber-600 transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                  Payment History
+                </p>
+                <p className="text-[11px] text-slate-400">View tax invoices & GST receipts</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+
+        {/* GITHUB-STYLE LEARNING STREAK HEATMAP */}
+        {activityData && (
+          <LearningStreakHeatmap
+            streak={activityData.streak}
+            days={activityData.days}
+            title="Daily Learning Streak"
+          />
+        )}
+
+        {/* UPCOMING ASSIGNMENTS & DUE DATES */}
+        {assignmentsData && assignmentsData.length > 0 && (
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 p-6 shadow-xs">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Upcoming Course Assignments & Deadlines
+                </h2>
+              </div>
+              <Link
+                to="/notes-assignments"
+                className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+              >
+                View all ({assignmentsData.length}) →
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {assignmentsData.slice(0, 3).map(({ assignment, submission }) => {
+                const isSubmitted = !!submission;
+                const isGraded = submission?.status === 'graded';
+                return (
+                  <div
+                    key={assignment.id}
+                    className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
+                          {assignment.submissionType === 'link' ? 'Repo / PR Link' : 'Written Report'}
+                        </span>
+                        {isGraded ? (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400">
+                            {submission.score}/{assignment.maxScore} marks
+                          </span>
+                        ) : isSubmitted ? (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-400">
+                            Submitted
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-400">
+                            Due {assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'Soon'}
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="text-xs font-bold text-slate-900 dark:text-white line-clamp-1">
+                        {assignment.title}
+                      </h3>
+                      <p className="text-[11px] text-slate-500 line-clamp-2 mt-1 leading-relaxed">
+                        {assignment.instructions}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between">
+                      <span className="text-[11px] text-slate-400">
+                        Max: {assignment.maxScore} pts
+                      </span>
+                      <Link
+                        to="/notes-assignments"
+                        className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                      >
+                        {isSubmitted ? 'View Evaluation →' : 'Submit Task →'}
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* CONTINUE LEARNING HERO CARD */}
         {currentHeroCourse && (

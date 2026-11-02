@@ -1,4 +1,25 @@
-import { Course, Category, Profile, Role, EnrolledCourseItem, Review, QuizAttempt, CertificateData, ChatSession, ChatMessage, SupportTicket, TicketCategory, TicketPriority, TicketStatus } from '../types';
+import {
+  Course,
+  Category,
+  Profile,
+  Role,
+  EnrolledCourseItem,
+  Review,
+  QuizAttempt,
+  CertificateData,
+  ChatSession,
+  ChatMessage,
+  SupportTicket,
+  TicketCategory,
+  TicketPriority,
+  TicketStatus,
+  Order,
+  LearningStreakData,
+  StudentReportData,
+  StudyNote,
+  Assignment,
+  AssignmentSubmission
+} from '../types';
 
 const TOKEN_KEY = 'learnhub_auth_token';
 
@@ -393,6 +414,105 @@ export const api = {
 
   deleteChatSession: (sessionId: string) =>
     fetchApi<{ success: boolean }>(`/api/chat/sessions/${sessionId}`, {
+      method: 'DELETE'
+    }),
+
+  // Payments (Task 1)
+  createPaymentOrder: (courseId: string) =>
+    fetchApi<Order>('/api/payments/orders', {
+      method: 'POST',
+      body: JSON.stringify({ courseId })
+    }),
+
+  payOrder: (orderId: string, upiId: string) =>
+    fetchApi<{ success: boolean; order: Order; enrollment: any }>(`/api/payments/orders/${orderId}/pay`, {
+      method: 'POST',
+      body: JSON.stringify({ upiId })
+    }),
+
+  getMyPayments: () =>
+    fetchApi<Order[]>('/api/payments/my'),
+
+  getOrderReceipt: (orderId: string) =>
+    fetchApi<{ order: Order; course: Course; student: { id: string; name: string; email: string } }>(
+      `/api/payments/receipt/${orderId}`
+    ),
+
+  getAdminPayments: (params?: { status?: string; search?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.status && params.status !== 'all') query.append('status', params.status);
+    if (params?.search) query.append('search', params.search);
+    return fetchApi<{
+      orders: Order[];
+      stats: {
+        totalRevenuePaise: number;
+        totalRevenueInr: number;
+        totalOrders: number;
+        paidCount: number;
+        failedCount: number;
+      };
+    }>(`/api/admin/payments?${query.toString()}`);
+  },
+
+  // Learning Activity & Streak (Task 3)
+  getStudentActivity: (range = 365, userId?: string) => {
+    const query = new URLSearchParams({ range: String(range) });
+    if (userId) query.append('userId', userId);
+    return fetchApi<LearningStreakData>(`/api/student/activity?${query.toString()}`);
+  },
+
+  // Student Progress Report (Task 4)
+  getStudentReport: () =>
+    fetchApi<StudentReportData>('/api/student/report'),
+
+  // Study Notes & Assignments (Task 5)
+  getCourseStudyNotes: (courseId: string) =>
+    fetchApi<{ courseTitle: string; studyNotes: StudyNote[]; personalNotes: any[] }>(
+      `/api/courses/${courseId}/study-notes`
+    ),
+
+  getCourseAssignments: (courseId: string) =>
+    fetchApi<{ courseTitle: string; assignments: Assignment[] }>(
+      `/api/courses/${courseId}/assignments`
+    ),
+
+  getMyAssignments: () =>
+    fetchApi<Assignment[]>('/api/student/assignments'),
+
+  submitAssignment: (id: string, payload: { content?: string; linkUrl?: string; submissionType?: string }) =>
+    fetchApi<{ success: boolean; submission: AssignmentSubmission }>(`/api/assignments/${id}/submit`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+
+  getInstructorAssignmentSubmissions: (id: string) =>
+    fetchApi<{ assignment: Assignment; submissions: AssignmentSubmission[] }>(
+      `/api/instructor/assignments/${id}/submissions`
+    ),
+
+  gradeSubmission: (id: string, payload: { marks: number; feedback?: string }) =>
+    fetchApi<{ success: boolean; submission: AssignmentSubmission }>(
+      `/api/instructor/submissions/${id}/grade`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      }
+    ),
+
+  createAssignment: (courseId: string, payload: any) =>
+    fetchApi<Assignment>(`/api/instructor/courses/${courseId}/assignments`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+
+  updateAssignment: (id: string, payload: any) =>
+    fetchApi<Assignment>(`/api/instructor/assignments/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    }),
+
+  deleteAssignment: (id: string) =>
+    fetchApi<{ success: boolean; message: string }>(`/api/instructor/assignments/${id}`, {
       method: 'DELETE'
     })
 };

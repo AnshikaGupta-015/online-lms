@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import { Role } from '../types';
+import { Role, formatInr, formatPaise, isPaidCourse } from '../types';
 import { StatCard } from '../components/StatCard';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { TableSkeleton } from '../components/Skeleton';
@@ -24,7 +24,9 @@ import {
   ShieldAlert,
   Calendar,
   ExternalLink,
-  LifeBuoy
+  LifeBuoy,
+  CreditCard,
+  Receipt
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -40,9 +42,13 @@ import {
 
 export const AdminDashboardPage: React.FC = () => {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'moderation' | 'users' | 'certificates' | 'support' | 'categories' | 'analytics'>('moderation');
+  const [activeTab, setActiveTab] = useState<'moderation' | 'users' | 'certificates' | 'payments' | 'support' | 'categories' | 'analytics'>('moderation');
   const [userSearch, setUserSearch] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState<string>('all');
+
+  // Payments management state (Task 1)
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<'all' | 'paid' | 'created' | 'failed'>('all');
+  const [paymentSearch, setPaymentSearch] = useState('');
 
   // Certificate management state (A.8)
   const [certSearch, setCertSearch] = useState('');
@@ -90,6 +96,11 @@ export const AdminDashboardPage: React.FC = () => {
   const { data: adminCertificates, isLoading: isCertificatesLoading } = useQuery({
     queryKey: ['adminCertificates'],
     queryFn: () => api.getAdminCertificates()
+  });
+
+  const { data: adminPayments, isLoading: isPaymentsLoading } = useQuery({
+    queryKey: ['adminPayments'],
+    queryFn: () => api.getAdminPayments()
   });
 
   // Mutations
@@ -270,6 +281,17 @@ export const AdminDashboardPage: React.FC = () => {
             >
               <Award className="w-3.5 h-3.5" />
               <span>Certificates ({adminCertificates?.length || 0})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('payments')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+                activeTab === 'payments'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              }`}
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              <span>Payments ({adminPayments?.stats?.totalOrders || 0})</span>
             </button>
             <button
               onClick={() => setActiveTab('support')}
@@ -702,7 +724,173 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
           )}
 
-          {/* TAB 4: ANALYTICS & TRENDS (RECHARTS) */}
+          {/* TAB: PAYMENTS & REVENUE (TASK 1) */}
+          {activeTab === 'payments' && (
+            <div className="space-y-6">
+              {/* Payment Summary Metrics */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 p-5 shadow-xs">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Settled Revenue</div>
+                  <div className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white font-mono tabular-nums">
+                    {formatInr(adminPayments?.stats?.totalRevenueInr || 0)}
+                  </div>
+                  <div className="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">100% Verified UPI</div>
+                </div>
+
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 p-5 shadow-xs">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Orders</div>
+                  <div className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white font-mono tabular-nums">
+                    {adminPayments?.stats?.totalOrders || 0}
+                  </div>
+                  <div className="mt-1 text-[11px] text-slate-400">All gateway attempts</div>
+                </div>
+
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 p-5 shadow-xs">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Paid Transactions</div>
+                  <div className="mt-1 text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono tabular-nums">
+                    {adminPayments?.stats?.paidCount || 0}
+                  </div>
+                  <div className="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">Enrolled Scholars</div>
+                </div>
+
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 p-5 shadow-xs">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Failed / Pending</div>
+                  <div className="mt-1 text-2xl font-extrabold text-rose-600 dark:text-rose-400 font-mono tabular-nums">
+                    {adminPayments?.stats?.failedCount || 0}
+                  </div>
+                  <div className="mt-1 text-[11px] text-rose-500">Simulated or abandoned</div>
+                </div>
+              </div>
+
+              {/* Payments Table Card */}
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 overflow-hidden shadow-xs">
+                {/* Search & Status Filters */}
+                <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="relative w-full sm:w-80">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Search orders, emails, courses..."
+                      value={paymentSearch}
+                      onChange={(e) => setPaymentSearch(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-1.5 self-start sm:self-auto">
+                    {(['all', 'paid', 'created', 'failed'] as const).map((st) => (
+                      <button
+                        key={st}
+                        onClick={() => setPaymentStatusFilter(st)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
+                          paymentStatusFilter === st
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                        }`}
+                      >
+                        {st}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Table */}
+                {isPaymentsLoading ? (
+                  <div className="p-6">
+                    <TableSkeleton rows={4} />
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-100 dark:border-slate-800 uppercase tracking-wider text-[10px]">
+                        <tr>
+                          <th className="px-5 py-3.5">Order ID & Date</th>
+                          <th className="px-5 py-3.5">Learner</th>
+                          <th className="px-5 py-3.5">Course</th>
+                          <th className="px-5 py-3.5">Amount (INR)</th>
+                          <th className="px-5 py-3.5">UPI Details</th>
+                          <th className="px-5 py-3.5">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {(adminPayments?.orders || [])
+                          .filter((o: any) => {
+                            if (paymentStatusFilter !== 'all' && o.status !== paymentStatusFilter) return false;
+                            if (paymentSearch.trim()) {
+                              const q = paymentSearch.toLowerCase();
+                              const matchId = (o.id || '').toLowerCase().includes(q);
+                              const matchUser = (o.userName || o.userEmail || '').toLowerCase().includes(q);
+                              const matchCourse = (o.courseTitle || '').toLowerCase().includes(q);
+                              const matchTxn = (o.txnId || '').toLowerCase().includes(q);
+                              return matchId || matchUser || matchCourse || matchTxn;
+                            }
+                            return true;
+                          })
+                          .map((order: any) => (
+                            <tr key={order.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                              <td className="px-5 py-4">
+                                <div className="font-mono font-semibold text-slate-900 dark:text-white">
+                                  {order.id}
+                                </div>
+                                <div className="text-[11px] text-slate-400 mt-0.5">
+                                  {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    year: 'numeric'
+                                  })}
+                                </div>
+                              </td>
+
+                              <td className="px-5 py-4">
+                                <div className="font-bold text-slate-900 dark:text-white">
+                                  {order.userName || 'Scholar'}
+                                </div>
+                                <div className="text-[11px] text-slate-400 font-mono">
+                                  {order.userEmail}
+                                </div>
+                              </td>
+
+                              <td className="px-5 py-4 font-medium text-slate-800 dark:text-slate-200 max-w-xs truncate">
+                                {order.courseTitle}
+                              </td>
+
+                              <td className="px-5 py-4 font-mono font-bold tabular-nums text-slate-900 dark:text-white">
+                                {formatPaise(order.totalAmountPaise || order.amountPaise)}
+                                <div className="text-[10px] text-slate-400 font-normal">
+                                  incl. 18% GST
+                                </div>
+                              </td>
+
+                              <td className="px-5 py-4 font-mono text-[11px] text-slate-600 dark:text-slate-400">
+                                <div>{order.upiId || '—'}</div>
+                                {order.txnId && (
+                                  <div className="text-[10px] text-indigo-600 dark:text-indigo-400">{order.txnId}</div>
+                                )}
+                              </td>
+
+                              <td className="px-5 py-4">
+                                <span
+                                  className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                                    order.status === 'paid'
+                                      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
+                                      : order.status === 'failed'
+                                      ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400'
+                                      : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400'
+                                  }`}
+                                >
+                                  {order.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* TAB: CUSTOMER SUPPORT */}
           {activeTab === 'support' && <AdminSupportPanel />}
 
